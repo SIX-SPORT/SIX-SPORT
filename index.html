@@ -3,450 +3,704 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>SIX-SPORT — Sistema de Gestión</title>
+<title>SIX-SPORT</title>
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;900&family=Barlow:wght@400;500;600&display=swap');
-  :root {
-    --black:#0A0A0A; --carbon:#1A1A1A; --graphite:#2C2C2C; --steel:#4A4A4A;
-    --silver:#9A9A9A; --mist:#E8E8E8; --white:#F8F8F8; --volt:#C8FF00;
-    --danger:#FF3B3B; --warning:#FFB800; --success:#00C97A;
-  }
-  *{margin:0;padding:0;box-sizing:border-box}
-  body{background:var(--black);color:var(--white);font-family:'Barlow',sans-serif;min-height:100vh;font-size:14px}
-  .layout{display:flex;min-height:100vh}
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=Inter:wght@300;400;500;600;700&display=swap');
 
-  /* SIDEBAR */
-  .sidebar{width:220px;background:var(--carbon);border-right:1px solid var(--graphite);display:flex;flex-direction:column;position:fixed;height:100vh;z-index:100}
-  .logo{padding:18px 16px 16px;border-bottom:1px solid var(--graphite);display:flex;align-items:center;gap:12px}
-  .logo img{width:42px;height:42px;object-fit:contain;background:#fff;border-radius:8px;padding:5px;filter:none;box-shadow:0 0 0 2px rgba(200,255,0,0.3)}
-  .logo-wrap{}
-  .logo-text{font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:22px;letter-spacing:2px;color:var(--volt);line-height:1}
-  .logo-sub{font-size:9px;color:var(--silver);letter-spacing:3px;text-transform:uppercase;margin-top:1px}
-  .nav{padding:12px 0;flex:1}
-  .nav-item{display:flex;align-items:center;gap:10px;padding:10px 16px;cursor:pointer;color:var(--silver);font-size:13px;font-weight:500;transition:all .15s;border-left:3px solid transparent}
-  .nav-item:hover{color:var(--white);background:var(--graphite)}
-  .nav-item.active{color:var(--volt);border-left-color:var(--volt);background:rgba(200,255,0,.05)}
-  .nav-icon{font-size:15px;width:18px;text-align:center}
-  .sidebar-footer{padding:12px 16px;border-top:1px solid var(--graphite);font-size:10px;color:var(--steel)}
+:root {
+  --black:    #080808;
+  --ink:      #111111;
+  --carbon:   #191919;
+  --graphite: #252525;
+  --steel:    #3A3A3A;
+  --muted:    #666666;
+  --silver:   #999999;
+  --white:    #F5F0E8;
+  --gold:     #C9A84C;
+  --gold-lt:  #E2C97E;
+  --gold-dk:  #8B6914;
+  --gold-glow:rgba(201,168,76,.18);
+  --danger:   #C0392B;
+  --success:  #1A7A4A;
+  --warning:  #B8860B;
+}
 
-  /* MAIN */
-  .main{margin-left:220px;flex:1;padding:24px}
-  .topbar{display:flex;justify-content:space-between;align-items:center;margin-bottom:24px}
-  .page-title{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:26px;letter-spacing:1px;text-transform:uppercase}
-  .page-title span{color:var(--volt)}
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{height:100%}
+body{background:var(--black);color:var(--white);font-family:'Inter',sans-serif;font-size:14px;line-height:1.5}
 
-  /* BUTTONS */
-  .btn{padding:8px 16px;border:none;border-radius:4px;cursor:pointer;font-family:'Barlow',sans-serif;font-weight:600;font-size:13px;transition:all .15s}
-  .btn-primary{background:var(--volt);color:var(--black)}
-  .btn-primary:hover{background:#d4ff1a}
-  .btn-ghost{background:transparent;color:var(--silver);border:1px solid var(--graphite)}
-  .btn-ghost:hover{border-color:var(--silver);color:var(--white)}
-  .btn-danger{background:var(--danger);color:white}
-  .btn-sm{padding:5px 10px;font-size:12px}
-  .btn-row{display:flex;gap:8px}
+/* ── LAYOUT ── */
+.layout{display:flex;min-height:100vh}
 
-  /* CARDS */
-  .cards-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:24px}
-  .card{background:var(--carbon);border:1px solid var(--graphite);border-radius:6px;padding:18px}
-  .card-label{font-size:10px;text-transform:uppercase;letter-spacing:2px;color:var(--silver);margin-bottom:6px}
-  .card-value{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:28px;line-height:1;color:var(--white)}
-  .card-sub{font-size:11px;color:var(--silver);margin-top:4px}
-  .card-accent{border-top:2px solid var(--volt)}
+/* ── SIDEBAR ── */
+.sidebar{
+  width:240px;min-width:240px;
+  background:var(--ink);
+  border-right:1px solid var(--graphite);
+  display:flex;flex-direction:column;
+  position:fixed;height:100vh;z-index:200;
+  overflow:hidden;
+}
 
-  /* TABS */
-  .tabs{display:flex;gap:6px;margin-bottom:20px;flex-wrap:wrap;padding:4px;background:var(--carbon);border:1px solid var(--graphite);border-radius:8px;width:fit-content}
-  .tab{padding:8px 16px;cursor:pointer;font-size:12px;font-weight:700;color:var(--silver);border-radius:6px;transition:all .18s;text-transform:uppercase;letter-spacing:.8px;border:1px solid transparent;user-select:none}
-  .tab:hover{color:var(--white);background:var(--graphite);border-color:var(--steel)}
-  .tab.active{color:var(--black);background:var(--volt);border-color:var(--volt);box-shadow:0 2px 8px rgba(200,255,0,.35)}
+/* LOGO AREA */
+.logo-area{
+  padding:28px 20px 24px;
+  border-bottom:1px solid var(--graphite);
+  display:flex;flex-direction:column;align-items:center;gap:14px;
+  background:linear-gradient(160deg,#111 60%,#1a1508 100%);
+}
+.logo-emblem{
+  width:72px;height:72px;
+  background:linear-gradient(135deg,#1a1a1a,#0a0a0a);
+  border-radius:14px;
+  display:flex;align-items:center;justify-content:center;
+  padding:8px;
+  box-shadow:0 0 0 1px var(--gold-dk), 0 0 24px rgba(201,168,76,.3), 0 4px 16px rgba(0,0,0,.6);
+}
+.logo-emblem img{width:100%;height:100%;object-fit:contain}
+.logo-wordmark{text-align:center}
+.logo-name{
+  font-family:'Playfair Display',serif;
+  font-weight:900;font-size:20px;
+  letter-spacing:4px;
+  background:linear-gradient(135deg,var(--gold-lt) 0%,var(--gold) 50%,var(--gold-dk) 100%);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+  text-transform:uppercase;line-height:1;
+}
+.logo-tagline{
+  font-size:8px;letter-spacing:4px;text-transform:uppercase;
+  color:var(--muted);margin-top:4px;
+}
 
-  /* TABLE */
-  .table-wrap{background:var(--carbon);border:1px solid var(--graphite);border-radius:6px;overflow:hidden}
-  .table-header{display:flex;justify-content:space-between;align-items:center;padding:14px 18px;border-bottom:1px solid var(--graphite);gap:10px;flex-wrap:wrap}
-  .table-title{font-weight:600;font-size:14px}
-  .search-input{background:var(--graphite);border:1px solid var(--steel);color:var(--white);padding:6px 12px;border-radius:4px;font-family:'Barlow',sans-serif;font-size:13px;width:200px}
-  .search-input::placeholder{color:var(--steel)}
-  .search-input:focus{outline:none;border-color:var(--volt)}
-  table{width:100%;border-collapse:collapse}
-  thead th{text-align:left;padding:10px 14px;font-size:10px;text-transform:uppercase;letter-spacing:1.5px;color:var(--silver);border-bottom:1px solid var(--graphite);background:var(--black)}
-  tbody tr{border-bottom:1px solid var(--graphite);transition:background .1s}
-  tbody tr:last-child{border-bottom:none}
-  tbody tr:hover{background:rgba(255,255,255,.02)}
-  tbody td{padding:11px 14px;font-size:13px;color:var(--white)}
+/* GOLD DIVIDER */
+.gold-line{
+  height:1px;
+  background:linear-gradient(90deg,transparent,var(--gold),transparent);
+  margin:0 20px;opacity:.5;
+}
 
-  /* BADGES */
-  .badge{display:inline-block;padding:3px 7px;border-radius:3px;font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.5px}
-  .badge-ok{background:rgba(0,201,122,.15);color:var(--success)}
-  .badge-low{background:rgba(255,184,0,.15);color:var(--warning)}
-  .badge-out{background:rgba(255,59,59,.15);color:var(--danger)}
-  .badge-cr{background:rgba(200,255,0,.1);color:var(--volt)}
-  .badge-ni{background:rgba(100,160,255,.15);color:#64A0FF}
-  .badge-pe{background:rgba(255,100,100,.15);color:#FF6464}
-  .badge-uni{background:rgba(200,255,0,.2);color:var(--volt);border:1px solid rgba(200,255,0,.3)}
+/* NAV */
+.nav{padding:16px 0;flex:1;overflow-y:auto}
+.nav-section-label{
+  font-size:9px;letter-spacing:3px;text-transform:uppercase;
+  color:var(--steel);padding:12px 20px 6px;font-weight:600;
+}
+.nav-item{
+  display:flex;align-items:center;gap:12px;
+  padding:11px 20px;cursor:pointer;
+  color:var(--silver);font-size:13px;font-weight:500;
+  transition:all .2s;position:relative;
+  border-left:2px solid transparent;
+}
+.nav-item:hover{color:var(--white);background:var(--graphite)}
+.nav-item.active{
+  color:var(--gold-lt);
+  border-left-color:var(--gold);
+  background:linear-gradient(90deg,rgba(201,168,76,.1),transparent);
+}
+.nav-icon{font-size:15px;width:20px;text-align:center;flex-shrink:0}
 
-  .variant-chips{display:flex;gap:3px;flex-wrap:wrap}
-  .chip{background:var(--graphite);border:1px solid var(--steel);padding:2px 6px;border-radius:3px;font-size:10px;color:var(--silver)}
+.sidebar-footer{
+  padding:14px 20px;
+  border-top:1px solid var(--graphite);
+  font-size:10px;color:var(--steel);
+  letter-spacing:1px;text-align:center;
+}
 
-  /* MODAL */
-  .modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:1000;align-items:center;justify-content:center}
-  .modal-overlay.open{display:flex}
-  .modal{background:var(--carbon);border:1px solid var(--graphite);border-radius:8px;padding:24px;width:580px;max-width:96vw;max-height:92vh;overflow-y:auto}
-  .modal-title{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:20px;text-transform:uppercase;letter-spacing:1px;margin-bottom:20px;color:var(--volt)}
+/* ── MAIN ── */
+.main{margin-left:240px;flex:1;padding:28px 32px;min-height:100vh}
 
-  .form-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-  .form-full{grid-column:1 / -1}
-  .form-group{display:flex;flex-direction:column;gap:5px}
-  .form-label{font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--silver)}
-  .form-input,.form-select{background:var(--graphite);border:1px solid var(--steel);color:var(--white);padding:8px 11px;border-radius:4px;font-family:'Barlow',sans-serif;font-size:13px}
-  .form-input:focus,.form-select:focus{outline:none;border-color:var(--volt)}
-  .form-select option{background:var(--graphite)}
-  .modal-footer{display:flex;gap:10px;justify-content:flex-end;margin-top:20px}
+/* TOPBAR */
+.topbar{
+  display:flex;justify-content:space-between;align-items:center;
+  margin-bottom:28px;
+  padding-bottom:20px;
+  border-bottom:1px solid var(--graphite);
+}
+.page-title{
+  font-family:'Playfair Display',serif;
+  font-weight:700;font-size:24px;color:var(--white);
+}
+.page-title .gold{
+  background:linear-gradient(135deg,var(--gold-lt),var(--gold));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+}
+.page-date{font-size:11px;color:var(--muted);margin-top:2px;font-weight:300}
 
-  /* IMPUESTO UNIFORME BOX */
-  .uni-box{background:rgba(200,255,0,.05);border:1px solid rgba(200,255,0,.25);border-radius:6px;padding:14px 16px;margin-top:14px}
-  .uni-box-title{font-size:11px;text-transform:uppercase;letter-spacing:1.5px;color:var(--volt);font-weight:700;margin-bottom:10px;display:flex;align-items:center;gap:6px}
-  .uni-box-row{display:flex;justify-content:space-between;align-items:center;padding:5px 0;font-size:13px}
-  .uni-box-row:not(:last-child){border-bottom:1px solid rgba(200,255,0,.1)}
+/* ── BUTTONS ── */
+.btn{
+  padding:9px 18px;border:none;border-radius:6px;cursor:pointer;
+  font-family:'Inter',sans-serif;font-weight:600;font-size:12px;
+  letter-spacing:.5px;transition:all .2s;
+}
+.btn-gold{
+  background:linear-gradient(135deg,var(--gold-lt),var(--gold));
+  color:var(--black);
+  box-shadow:0 2px 12px rgba(201,168,76,.3);
+}
+.btn-gold:hover{box-shadow:0 4px 20px rgba(201,168,76,.5);transform:translateY(-1px)}
+.btn-outline{
+  background:transparent;color:var(--silver);
+  border:1px solid var(--steel);
+}
+.btn-outline:hover{border-color:var(--gold);color:var(--gold-lt)}
+.btn-danger{background:var(--danger);color:var(--white)}
+.btn-sm{padding:6px 12px;font-size:11px}
+.btn-row{display:flex;gap:8px}
 
-  /* TALLAS */
-  .tag-row{display:flex;gap:6px;flex-wrap:wrap}
-  .tag{background:var(--graphite);border:1px solid var(--steel);padding:3px 10px;border-radius:20px;font-size:11px;color:var(--silver);cursor:pointer;transition:all .15s}
-  .tag:hover{border-color:var(--silver)}
-  .tag.selected{background:rgba(200,255,0,.15);border-color:var(--volt);color:var(--volt)}
+/* ── STAT CARDS ── */
+.cards-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:28px}
+.stat-card{
+  background:var(--carbon);
+  border:1px solid var(--graphite);
+  border-radius:10px;padding:20px;
+  position:relative;overflow:hidden;
+}
+.stat-card::before{
+  content:'';position:absolute;top:0;left:0;right:0;height:2px;
+  background:linear-gradient(90deg,transparent,var(--gold),transparent);
+  opacity:0;transition:opacity .3s;
+}
+.stat-card:hover::before{opacity:1}
+.stat-card.accent::before{opacity:1}
+.stat-label{font-size:10px;text-transform:uppercase;letter-spacing:2px;color:var(--muted);margin-bottom:10px;font-weight:600}
+.stat-value{
+  font-family:'Playfair Display',serif;
+  font-weight:700;font-size:30px;line-height:1;
+  color:var(--white);
+}
+.stat-value.gold{
+  background:linear-gradient(135deg,var(--gold-lt),var(--gold));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+}
+.stat-sub{font-size:11px;color:var(--muted);margin-top:6px;font-weight:300}
 
-  /* VENTAS */
-  .venta-card{background:var(--carbon);border:1px solid var(--graphite);border-radius:6px;padding:18px;margin-bottom:14px}
-  .venta-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:14px}
-  .venta-id{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:17px;color:var(--volt)}
-  .venta-date{font-size:11px;color:var(--silver);margin-top:2px}
-  .venta-items{border-top:1px solid var(--graphite);padding-top:12px}
-  .venta-item{display:flex;justify-content:space-between;padding:4px 0;font-size:13px}
-  .venta-item-uni{background:rgba(200,255,0,.04);border-radius:3px;padding:4px 6px;margin:2px 0}
-  .venta-totals{border-top:1px solid var(--graphite);margin-top:8px;padding-top:8px}
-  .venta-total-row{display:flex;justify-content:space-between;padding:3px 0;font-size:13px}
-  .venta-total-row.grand{font-weight:700;font-size:14px;color:var(--volt);margin-top:5px}
+/* ── TABS ── */
+.tabs{
+  display:flex;gap:4px;margin-bottom:22px;
+  background:var(--carbon);border:1px solid var(--graphite);
+  border-radius:10px;padding:5px;width:fit-content;
+}
+.tab{
+  padding:8px 18px;cursor:pointer;font-size:12px;font-weight:600;
+  color:var(--muted);border-radius:7px;transition:all .2s;
+  text-transform:uppercase;letter-spacing:1px;user-select:none;
+}
+.tab:hover{color:var(--white);background:var(--graphite)}
+.tab.active{
+  color:var(--black);
+  background:linear-gradient(135deg,var(--gold-lt),var(--gold));
+  box-shadow:0 2px 10px rgba(201,168,76,.4);
+}
 
-  /* DASHBOARD CHART */
-  .chart-bar-wrap{display:flex;align-items:flex-end;gap:6px;height:70px;margin-top:10px}
-  .chart-bar{flex:1;background:var(--volt);border-radius:2px 2px 0 0;opacity:.65;transition:opacity .2s}
-  .chart-bar:hover{opacity:1}
-  .chart-labels{display:flex;gap:6px;margin-top:5px}
-  .chart-label{flex:1;text-align:center;font-size:9px;color:var(--silver)}
+/* ── TABLE ── */
+.table-wrap{
+  background:var(--carbon);border:1px solid var(--graphite);
+  border-radius:10px;overflow:hidden;
+}
+.table-header{
+  display:flex;justify-content:space-between;align-items:center;
+  padding:16px 20px;border-bottom:1px solid var(--graphite);
+  gap:12px;flex-wrap:wrap;
+  background:linear-gradient(90deg,var(--carbon),var(--ink));
+}
+.table-title{font-weight:600;font-size:14px;color:var(--white)}
+.search-input{
+  background:var(--graphite);border:1px solid var(--steel);
+  color:var(--white);padding:7px 14px;border-radius:6px;
+  font-family:'Inter',sans-serif;font-size:13px;width:210px;
+}
+.search-input::placeholder{color:var(--steel)}
+.search-input:focus{outline:none;border-color:var(--gold);box-shadow:0 0 0 2px rgba(201,168,76,.15)}
+table{width:100%;border-collapse:collapse}
+thead th{
+  text-align:left;padding:11px 16px;
+  font-size:10px;text-transform:uppercase;letter-spacing:1.5px;
+  color:var(--muted);border-bottom:1px solid var(--graphite);
+  background:var(--ink);font-weight:600;
+}
+tbody tr{border-bottom:1px solid var(--graphite);transition:background .15s}
+tbody tr:last-child{border-bottom:none}
+tbody tr:hover{background:rgba(201,168,76,.03)}
+tbody td{padding:12px 16px;font-size:13px;color:var(--white)}
 
-  /* PRICE TABLE */
-  .price-section{margin-bottom:20px}
-  .price-section-title{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:14px;text-transform:uppercase;letter-spacing:1px;color:var(--volt);margin-bottom:10px;padding-bottom:6px;border-bottom:1px solid var(--graphite)}
+/* ── BADGES ── */
+.badge{
+  display:inline-block;padding:3px 8px;border-radius:4px;
+  font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;
+}
+.badge-ok{background:rgba(26,122,74,.2);color:#4CAF82;border:1px solid rgba(26,122,74,.3)}
+.badge-low{background:rgba(184,134,11,.2);color:#D4A843;border:1px solid rgba(184,134,11,.3)}
+.badge-out{background:rgba(192,57,43,.2);color:#E57368;border:1px solid rgba(192,57,43,.3)}
+.badge-cr{background:rgba(201,168,76,.12);color:var(--gold-lt);border:1px solid rgba(201,168,76,.25)}
+.badge-ni{background:rgba(100,160,255,.12);color:#85B4FF;border:1px solid rgba(100,160,255,.2)}
+.badge-uni{background:rgba(201,168,76,.15);color:var(--gold-lt);border:1px solid rgba(201,168,76,.3)}
 
-  /* SETTINGS */
-  .settings-section{margin-bottom:24px}
-  .settings-title{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:15px;text-transform:uppercase;letter-spacing:1px;color:var(--volt);margin-bottom:12px;padding-bottom:7px;border-bottom:1px solid var(--graphite)}
-  .settings-row{display:flex;justify-content:space-between;align-items:center;padding:11px 0;border-bottom:1px solid var(--graphite)}
-  .settings-row:last-child{border-bottom:none}
-  .settings-row-label{font-size:13px;color:var(--white)}
-  .settings-row-sub{font-size:11px;color:var(--silver);margin-top:2px}
+.chips{display:flex;gap:3px;flex-wrap:wrap}
+.chip{
+  background:var(--graphite);border:1px solid var(--steel);
+  padding:2px 7px;border-radius:4px;font-size:10px;color:var(--silver);
+}
 
-  /* TOAST */
-  .toast{position:fixed;bottom:24px;right:24px;background:var(--volt);color:var(--black);padding:11px 18px;border-radius:4px;font-weight:600;font-size:13px;z-index:9999;transform:translateY(80px);opacity:0;transition:all .3s}
-  .toast.show{transform:translateY(0);opacity:1}
+/* ── MODAL ── */
+.modal-overlay{
+  display:none;position:fixed;inset:0;
+  background:rgba(0,0,0,.88);z-index:1000;
+  align-items:center;justify-content:center;
+  backdrop-filter:blur(3px);
+}
+.modal-overlay.open{display:flex}
+.modal{
+  background:var(--carbon);
+  border:1px solid var(--steel);
+  border-top:2px solid var(--gold);
+  border-radius:12px;padding:28px;
+  width:580px;max-width:96vw;max-height:92vh;overflow-y:auto;
+  box-shadow:0 24px 60px rgba(0,0,0,.7),0 0 40px rgba(201,168,76,.08);
+}
+.modal-title{
+  font-family:'Playfair Display',serif;
+  font-weight:700;font-size:20px;
+  color:var(--gold-lt);margin-bottom:22px;
+  display:flex;align-items:center;gap:10px;
+}
+.modal-title::before{
+  content:'';width:3px;height:22px;
+  background:linear-gradient(180deg,var(--gold-lt),var(--gold));
+  border-radius:2px;flex-shrink:0;
+}
 
-  .page{display:none}
-  .page.active{display:block}
-  .two-col{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+/* FORMS */
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.form-full{grid-column:1/-1}
+.form-group{display:flex;flex-direction:column;gap:6px}
+.form-label{font-size:10px;text-transform:uppercase;letter-spacing:1.5px;color:var(--muted);font-weight:600}
+.form-input,.form-select{
+  background:var(--graphite);border:1px solid var(--steel);
+  color:var(--white);padding:9px 12px;border-radius:6px;
+  font-family:'Inter',sans-serif;font-size:13px;
+  transition:border-color .2s;
+}
+.form-input:focus,.form-select:focus{outline:none;border-color:var(--gold);box-shadow:0 0 0 2px rgba(201,168,76,.12)}
+.form-select option{background:var(--graphite)}
+.modal-footer{display:flex;gap:10px;justify-content:flex-end;margin-top:22px;padding-top:18px;border-top:1px solid var(--graphite)}
 
-  @media(max-width:768px){
-    .sidebar{width:56px}
-    .logo-wrap,.nav-item span,.sidebar-footer{display:none}
-    .logo img{width:30px}
-    .main{margin-left:56px;padding:14px}
-    .cards-grid{grid-template-columns:repeat(2,1fr)}
-    .form-grid{grid-template-columns:1fr}
-    .two-col{grid-template-columns:1fr}
-  }
+/* TALLAS */
+.tag-row{display:flex;gap:6px;flex-wrap:wrap}
+.tag{
+  background:var(--graphite);border:1px solid var(--steel);
+  padding:4px 11px;border-radius:20px;font-size:11px;
+  color:var(--silver);cursor:pointer;transition:all .15s;font-weight:500;
+}
+.tag:hover{border-color:var(--gold);color:var(--gold-lt)}
+.tag.selected{
+  background:rgba(201,168,76,.15);
+  border-color:var(--gold);color:var(--gold-lt);
+}
+
+/* UNI BOX */
+.uni-box{
+  background:rgba(201,168,76,.05);
+  border:1px solid rgba(201,168,76,.2);
+  border-radius:8px;padding:14px 16px;margin-top:14px;
+}
+.uni-box-title{
+  font-size:11px;text-transform:uppercase;letter-spacing:1.5px;
+  color:var(--gold-lt);font-weight:700;margin-bottom:10px;
+}
+.uni-box-row{display:flex;justify-content:space-between;padding:5px 0;font-size:13px}
+.uni-box-row:not(:last-child){border-bottom:1px solid rgba(201,168,76,.08)}
+
+/* VENTA CARDS */
+.venta-card{
+  background:var(--carbon);border:1px solid var(--graphite);
+  border-radius:10px;padding:20px;margin-bottom:14px;
+  transition:border-color .2s;
+}
+.venta-card:hover{border-color:var(--steel)}
+.venta-id{font-family:'Playfair Display',serif;font-weight:700;font-size:16px;color:var(--gold-lt)}
+.venta-date{font-size:11px;color:var(--muted);margin-top:2px;font-weight:300}
+.venta-items{border-top:1px solid var(--graphite);padding-top:12px;margin-top:12px}
+.venta-item{display:flex;justify-content:space-between;padding:4px 0;font-size:13px}
+.venta-totals{border-top:1px solid var(--graphite);margin-top:8px;padding-top:10px}
+.venta-total-row{display:flex;justify-content:space-between;padding:3px 0;font-size:13px}
+.venta-total-row.grand{
+  font-weight:700;font-size:15px;margin-top:6px;
+  color:var(--gold-lt);
+}
+
+/* CHART */
+.chart-wrap{display:flex;align-items:flex-end;gap:6px;height:72px;margin-top:12px}
+.chart-bar{
+  flex:1;
+  background:linear-gradient(180deg,var(--gold-lt),var(--gold-dk));
+  border-radius:3px 3px 0 0;opacity:.6;transition:opacity .2s;
+}
+.chart-bar:hover{opacity:1}
+.chart-labels{display:flex;gap:6px;margin-top:5px}
+.chart-label{flex:1;text-align:center;font-size:9px;color:var(--muted)}
+
+/* PRICE SECTION */
+.price-section{margin-bottom:22px}
+.price-section-title{
+  font-family:'Playfair Display',serif;
+  font-weight:700;font-size:15px;
+  color:var(--gold-lt);margin-bottom:12px;
+  padding-bottom:8px;
+  border-bottom:1px solid var(--graphite);
+  display:flex;align-items:center;gap:8px;
+}
+.price-section-title::before{
+  content:'';width:3px;height:18px;
+  background:linear-gradient(180deg,var(--gold-lt),var(--gold));
+  border-radius:2px;
+}
+
+/* SETTINGS */
+.settings-section{margin-bottom:28px}
+.settings-title{
+  font-family:'Playfair Display',serif;
+  font-weight:700;font-size:16px;color:var(--gold-lt);
+  margin-bottom:14px;padding-bottom:8px;
+  border-bottom:1px solid var(--graphite);
+}
+.settings-row{
+  display:flex;justify-content:space-between;align-items:center;
+  padding:12px 0;border-bottom:1px solid var(--graphite);
+}
+.settings-row:last-child{border-bottom:none}
+.settings-row-label{font-size:13px;color:var(--white);font-weight:500}
+.settings-row-sub{font-size:11px;color:var(--muted);margin-top:2px;font-weight:300}
+
+/* TOAST */
+.toast{
+  position:fixed;bottom:28px;right:28px;
+  background:linear-gradient(135deg,var(--gold-lt),var(--gold));
+  color:var(--black);
+  padding:12px 20px;border-radius:8px;
+  font-weight:700;font-size:13px;letter-spacing:.3px;
+  z-index:9999;
+  transform:translateY(80px);opacity:0;transition:all .3s cubic-bezier(.34,1.56,.64,1);
+  box-shadow:0 4px 20px rgba(201,168,76,.4);
+}
+.toast.show{transform:translateY(0);opacity:1}
+
+/* GOLD SEPARATOR */
+.section-sep{
+  height:1px;
+  background:linear-gradient(90deg,transparent,var(--gold),transparent);
+  margin:24px 0;opacity:.2;
+}
+
+.page{display:none}
+.page.active{display:block}
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+
+@media(max-width:860px){
+  .sidebar{width:64px;min-width:64px}
+  .logo-wordmark,.nav-item span,.sidebar-footer,.nav-section-label,.logo-tagline{display:none}
+  .logo-area{padding:16px 10px}
+  .logo-emblem{width:44px;height:44px}
+  .main{margin-left:64px;padding:16px}
+  .cards-grid{grid-template-columns:repeat(2,1fr)}
+  .form-grid{grid-template-columns:1fr}
+  .two-col{grid-template-columns:1fr}
+}
 </style>
 </head>
 <body>
 <div class="layout">
-  <aside class="sidebar">
-    <div class="logo">
-      <img id="sidebar-logo" src="" alt="SIX-SPORT">
-      <div class="logo-wrap">
-        <div class="logo-text">SIX-SPORT</div>
-        <div class="logo-sub">Gestión</div>
-      </div>
+
+<!-- ══ SIDEBAR ══ -->
+<aside class="sidebar">
+  <div class="logo-area">
+    <div class="logo-emblem">
+      <img id="logo-img" src="" alt="SIX-SPORT">
     </div>
-    <nav class="nav">
-      <div class="nav-item active" onclick="showPage('dashboard',this)"><span class="nav-icon">📊</span><span>Dashboard</span></div>
-      <div class="nav-item" onclick="showPage('inventario',this)"><span class="nav-icon">📦</span><span>Inventario</span></div>
-      <div class="nav-item" onclick="showPage('precios',this)"><span class="nav-icon">💲</span><span>Precios</span></div>
-      <div class="nav-item" onclick="showPage('ventas',this)"><span class="nav-icon">🛒</span><span>Ventas</span></div>
-      <div class="nav-item" onclick="showPage('reportes',this)"><span class="nav-icon">📈</span><span>Reportes</span></div>
-      <div class="nav-item" onclick="showPage('configuracion',this)"><span class="nav-icon">⚙️</span><span>Configuración</span></div>
-    </nav>
-    <div class="sidebar-footer">SIX-SPORT © 2025</div>
-  </aside>
-
-  <main class="main">
-
-    <!-- DASHBOARD -->
-    <div id="page-dashboard" class="page active">
-      <div class="topbar">
-        <div class="page-title">Dashboard <span>SIX-SPORT</span></div>
-        <div style="font-size:11px;color:var(--silver)" id="current-date"></div>
-      </div>
-      <div class="cards-grid">
-        <div class="card card-accent">
-          <div class="card-label">Productos activos</div>
-          <div class="card-value" id="dash-productos">0</div>
-          <div class="card-sub">en inventario</div>
-        </div>
-        <div class="card">
-          <div class="card-label">Unidades en stock</div>
-          <div class="card-value" id="dash-stock">0</div>
-          <div class="card-sub">total piezas</div>
-        </div>
-        <div class="card">
-          <div class="card-label">Ventas del mes</div>
-          <div class="card-value" id="dash-ventas">0</div>
-          <div class="card-sub" id="dash-ventas-monto">₡0</div>
-        </div>
-        <div class="card">
-          <div class="card-label">Alertas stock</div>
-          <div class="card-value" id="dash-alertas" style="color:var(--warning)">0</div>
-          <div class="card-sub">productos bajos</div>
-        </div>
-      </div>
-      <div class="two-col">
-        <div class="card">
-          <div class="card-label">Ventas últimos 7 días</div>
-          <div class="chart-bar-wrap" id="dash-chart"></div>
-          <div class="chart-labels" id="dash-chart-labels"></div>
-        </div>
-        <div class="card">
-          <div class="card-label">⚠️ Stock bajo (≤ mínimo)</div>
-          <div id="dash-low-stock" style="margin-top:10px"></div>
-        </div>
-      </div>
+    <div class="logo-wordmark">
+      <div class="logo-name">SIX·SPORT</div>
+      <div class="logo-tagline">Sistema de Gestión</div>
     </div>
-
-    <!-- INVENTARIO -->
-    <div id="page-inventario" class="page">
-      <div class="topbar">
-        <div class="page-title">Inventario</div>
-        <button class="btn btn-primary" onclick="openModal('modal-producto')">+ Agregar Producto</button>
-      </div>
-      <div class="tabs">
-        <div class="tab active" onclick="filterInv('todos',this)">Todos</div>
-        <div class="tab" onclick="filterInv('CR',this)">🇨🇷 Costa Rica</div>
-        <div class="tab" onclick="filterInv('NI',this)">🇳🇮 Nicaragua</div>
-        <div class="tab" onclick="filterInv('bajo',this)">⚠️ Stock Bajo</div>
-      </div>
-      <div class="table-wrap">
-        <div class="table-header">
-          <div class="table-title">Productos</div>
-          <input class="search-input" placeholder="Buscar…" oninput="searchInv(this.value)">
-        </div>
-        <table>
-          <thead>
-            <tr>
-              <th>Producto</th><th>Categoría</th><th>Tallas/Colores</th>
-              <th>Costo (USD)</th><th>Precio CR (₡)</th><th>Precio NI (C$)</th>
-              <th>Stock</th><th>Mercado</th><th>Estado</th><th></th>
-            </tr>
-          </thead>
-          <tbody id="tabla-inventario"></tbody>
-        </table>
-      </div>
+  </div>
+  <div class="gold-line"></div>
+  <nav class="nav">
+    <div class="nav-section-label">Principal</div>
+    <div class="nav-item active" onclick="showPage('dashboard',this)">
+      <span class="nav-icon">◈</span><span>Dashboard</span>
     </div>
-
-    <!-- PRECIOS OFICIALES -->
-    <div id="page-precios" class="page">
-      <div class="topbar">
-        <div class="page-title">Tabla de <span>Precios</span></div>
-        <span style="font-size:12px;color:var(--silver)">Precios oficiales SIX-SPORT</span>
-      </div>
-
-      <!-- IMPUESTO UNIFORME -->
-      <div class="uni-box" style="margin-bottom:20px">
-        <div class="uni-box-title">⚡ Impuesto Juego Completo (Camiseta + Short + Medias)</div>
-        <div class="uni-box-row">
-          <span style="color:var(--silver)">Cargo adicional por juego de 3 piezas</span>
-          <span style="font-family:'Barlow Condensed',sans-serif;font-size:18px;font-weight:700;color:var(--volt)">+ $3.50 USD por juego</div>
-        </div>
-        <div class="uni-box-row">
-          <span style="color:var(--silver)">Equivalente en Colones (₡)</span>
-          <span id="uni-tax-crc" style="color:var(--white)">₡1,820</span>
-        </div>
-        <div class="uni-box-row">
-          <span style="color:var(--silver)">Equivalente en Córdobas (C$)</span>
-          <span id="uni-tax-nio" style="color:var(--white)">C$128.28</span>
-        </div>
-        <div style="font-size:11px;color:var(--silver);margin-top:10px">
-          Este cargo aplica automáticamente cuando se registra una venta de juego completo (3 piezas).
-        </div>
-      </div>
-
-      <!-- TABLA PRECIOS DE FÁBRICA -->
-      <div class="price-section">
-        <div class="price-section-title">A. Precios de Fábrica (lo que se paga al proveedor)</div>
-        <div class="table-wrap">
-          <table>
-            <thead>
-              <tr>
-                <th>Tipo de Prenda</th>
-                <th>Precio Base (₡)</th>
-                <th>IVA 13% (₡)</th>
-                <th>Importe Fábrica (₡)</th>
-                <th>En USD</th>
-              </tr>
-            </thead>
-            <tbody id="tabla-fabrica"></tbody>
-          </table>
-        </div>
-      </div>
-
-      <!-- TABLA PRECIOS DE VENTA -->
-      <div class="price-section">
-        <div class="price-section-title">B. Precios de Venta Web</div>
-        <div class="table-wrap">
-          <table>
-            <thead>
-              <tr>
-                <th>Tipo de Prenda</th>
-                <th>Precio sin IVA (₡)</th>
-                <th>IVA 13% (₡)</th>
-                <th>Precio con IVA (₡)</th>
-                <th>Ganancia (₡)</th>
-                <th>En USD</th>
-                <th>En C$ NIO</th>
-              </tr>
-            </thead>
-            <tbody id="tabla-venta-web"></tbody>
-          </table>
-        </div>
-      </div>
-
-      <!-- TIPOS DE CAMBIO REFERENCIA -->
-      <div class="card" style="margin-top:4px">
-        <div class="card-label">Tipos de cambio actuales</div>
-        <div style="display:flex;gap:24px;margin-top:10px;flex-wrap:wrap">
-          <span style="font-size:13px">🇨🇷 1 USD = <strong id="ref-crc">₡515</strong></span>
-          <span style="font-size:13px">🇳🇮 1 USD = <strong id="ref-nio">C$36.65</strong></span>
-          <span style="font-size:13px">🇵🇪 1 USD = <strong id="ref-pen">S/3.75</strong></span>
-        </div>
-      </div>
+    <div class="nav-section-label">Gestión</div>
+    <div class="nav-item" onclick="showPage('inventario',this)">
+      <span class="nav-icon">▦</span><span>Inventario</span>
     </div>
-
-    <!-- VENTAS -->
-    <div id="page-ventas" class="page">
-      <div class="topbar">
-        <div class="page-title">Ventas</div>
-        <button class="btn btn-primary" onclick="openModal('modal-venta')">+ Nueva Venta</button>
-      </div>
-      <div class="cards-grid" style="grid-template-columns:repeat(3,1fr)">
-        <div class="card"><div class="card-label">Total vendido (mes)</div><div class="card-value" id="v-total-mes">₡0</div></div>
-        <div class="card"><div class="card-label">IVA cobrado (mes)</div><div class="card-value" id="v-iva-mes">₡0</div></div>
-        <div class="card"><div class="card-label">Transacciones</div><div class="card-value" id="v-count-mes">0</div></div>
-      </div>
-      <div id="lista-ventas"></div>
+    <div class="nav-item" onclick="showPage('precios',this)">
+      <span class="nav-icon">◎</span><span>Precios</span>
     </div>
-
-    <!-- REPORTES -->
-    <div id="page-reportes" class="page">
-      <div class="topbar">
-        <div class="page-title">Reportes</div>
-        <button class="btn btn-ghost" onclick="exportarCSV()">⬇ Exportar CSV</button>
-      </div>
-      <div class="two-col" style="margin-bottom:16px">
-        <div class="card"><div class="card-label">Ganancia bruta (mes)</div><div class="card-value" id="rep-ganancia" style="color:var(--success)">₡0</div><div class="card-sub">ventas − costos − IVA</div></div>
-        <div class="card"><div class="card-label">IVA a declarar (mes)</div><div class="card-value" id="rep-iva">₡0</div><div class="card-sub">13% CR · 15% NI</div></div>
-      </div>
-      <div class="table-wrap">
-        <div class="table-header"><div class="table-title">Movimientos del mes</div></div>
-        <table>
-          <thead>
-            <tr><th>Fecha</th><th>Venta ID</th><th>Producto</th><th>Cant.</th><th>Subtotal</th><th>Imp. Uniforme</th><th>IVA</th><th>Total</th><th>País</th><th>Pago</th></tr>
-          </thead>
-          <tbody id="tabla-reportes"></tbody>
-        </table>
-      </div>
+    <div class="nav-item" onclick="showPage('ventas',this)">
+      <span class="nav-icon">◐</span><span>Ventas</span>
     </div>
-
-    <!-- CONFIGURACIÓN -->
-    <div id="page-configuracion" class="page">
-      <div class="topbar"><div class="page-title">Configuración</div></div>
-      <div class="settings-section">
-        <div class="settings-title">Tipos de cambio (1 USD =)</div>
-        <div class="settings-row">
-          <div><div class="settings-row-label">🇨🇷 Colones (CRC)</div></div>
-          <div style="display:flex;align-items:center;gap:8px">
-            <input class="form-input" id="tc-crc" value="515" style="width:90px" onchange="saveConfig()">
-            <span style="color:var(--silver)">₡</span>
-          </div>
-        </div>
-        <div class="settings-row">
-          <div><div class="settings-row-label">🇳🇮 Córdobas (NIO)</div></div>
-          <div style="display:flex;align-items:center;gap:8px">
-            <input class="form-input" id="tc-nio" value="36.65" style="width:90px" onchange="saveConfig()">
-            <span style="color:var(--silver)">C$</span>
-          </div>
-        </div>
-        <div class="settings-row">
-          <div><div class="settings-row-label">🇵🇪 Soles (PEN)</div></div>
-          <div style="display:flex;align-items:center;gap:8px">
-            <input class="form-input" id="tc-pen" value="3.75" style="width:90px" onchange="saveConfig()">
-            <span style="color:var(--silver)">S/</span>
-          </div>
-        </div>
-      </div>
-      <div class="settings-section">
-        <div class="settings-title">Impuestos</div>
-        <div class="settings-row">
-          <div><div class="settings-row-label">🇨🇷 IVA Costa Rica</div></div>
-          <div style="display:flex;align-items:center;gap:8px">
-            <input class="form-input" id="iva-cr" value="13" style="width:70px" onchange="saveConfig()">
-            <span style="color:var(--silver)">%</span>
-          </div>
-        </div>
-        <div class="settings-row">
-          <div><div class="settings-row-label">🇳🇮 IVA Nicaragua</div></div>
-          <div style="display:flex;align-items:center;gap:8px">
-            <input class="form-input" id="iva-ni" value="15" style="width:70px" onchange="saveConfig()">
-            <span style="color:var(--silver)">%</span>
-          </div>
-        </div>
-        <div class="settings-row">
-          <div>
-            <div class="settings-row-label">⚡ Impuesto Juego Completo</div>
-            <div class="settings-row-sub">Cargo adicional por camiseta + short + medias</div>
-          </div>
-          <div style="display:flex;align-items:center;gap:8px">
-            <span style="color:var(--silver)">USD</span>
-            <input class="form-input" id="uni-tax" value="3.50" style="width:80px" onchange="saveConfig()">
-          </div>
-        </div>
-      </div>
-      <div class="settings-section">
-        <div class="settings-title">Datos</div>
-        <div class="settings-row">
-          <div>
-            <div class="settings-row-label">Borrar todos los datos</div>
-            <div class="settings-row-sub">No se puede deshacer</div>
-          </div>
-          <button class="btn btn-danger btn-sm" onclick="resetData()">Borrar todo</button>
-        </div>
-      </div>
+    <div class="nav-section-label">Análisis</div>
+    <div class="nav-item" onclick="showPage('reportes',this)">
+      <span class="nav-icon">▲</span><span>Reportes</span>
     </div>
+    <div class="nav-section-label">Sistema</div>
+    <div class="nav-item" onclick="showPage('configuracion',this)">
+      <span class="nav-icon">◉</span><span>Configuración</span>
+    </div>
+  </nav>
+  <div class="sidebar-footer">SIX·SPORT © 2025</div>
+</aside>
 
-  </main>
+<!-- ══ MAIN ══ -->
+<main class="main">
+
+<!-- DASHBOARD -->
+<div id="page-dashboard" class="page active">
+  <div class="topbar">
+    <div>
+      <div class="page-title">Panel <span class="gold">Principal</span></div>
+      <div class="page-date" id="current-date"></div>
+    </div>
+  </div>
+  <div class="cards-grid">
+    <div class="stat-card accent">
+      <div class="stat-label">Productos activos</div>
+      <div class="stat-value gold" id="dash-productos">0</div>
+      <div class="stat-sub">en inventario</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Unidades en stock</div>
+      <div class="stat-value" id="dash-stock">0</div>
+      <div class="stat-sub">total piezas</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Ventas del mes</div>
+      <div class="stat-value" id="dash-ventas">0</div>
+      <div class="stat-sub" id="dash-ventas-monto">₡0</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Alertas stock</div>
+      <div class="stat-value" id="dash-alertas" style="color:#D4A843">0</div>
+      <div class="stat-sub">productos bajos</div>
+    </div>
+  </div>
+  <div class="two-col">
+    <div class="stat-card">
+      <div class="stat-label">Ventas últimos 7 días</div>
+      <div class="chart-wrap" id="dash-chart"></div>
+      <div class="chart-labels" id="dash-chart-labels"></div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">⚠ Stock bajo</div>
+      <div id="dash-low-stock" style="margin-top:12px"></div>
+    </div>
+  </div>
 </div>
 
-<!-- MODAL: PRODUCTO -->
+<!-- INVENTARIO -->
+<div id="page-inventario" class="page">
+  <div class="topbar">
+    <div>
+      <div class="page-title">Inventario <span class="gold">Productos</span></div>
+    </div>
+    <button class="btn btn-gold" onclick="openModal('modal-producto')">+ Nuevo Producto</button>
+  </div>
+  <div class="tabs">
+    <div class="tab active" onclick="filterInv('todos',this)">Todos</div>
+    <div class="tab" onclick="filterInv('CR',this)">🇨🇷 Costa Rica</div>
+    <div class="tab" onclick="filterInv('NI',this)">🇳🇮 Nicaragua</div>
+    <div class="tab" onclick="filterInv('bajo',this)">⚠ Stock Bajo</div>
+  </div>
+  <div class="table-wrap">
+    <div class="table-header">
+      <div class="table-title">Catálogo de productos</div>
+      <input class="search-input" placeholder="Buscar producto…" oninput="searchInv(this.value)">
+    </div>
+    <table>
+      <thead><tr>
+        <th>Producto</th><th>Categoría</th><th>Tallas</th>
+        <th>Costo USD</th><th>Precio CR ₡</th><th>Precio NI C$</th>
+        <th>Stock</th><th>Mercado</th><th>Estado</th><th></th>
+      </tr></thead>
+      <tbody id="tabla-inventario"></tbody>
+    </table>
+  </div>
+</div>
+
+<!-- PRECIOS -->
+<div id="page-precios" class="page">
+  <div class="topbar">
+    <div>
+      <div class="page-title">Tabla de <span class="gold">Precios</span></div>
+    </div>
+  </div>
+  <div class="uni-box" style="margin-bottom:22px">
+    <div class="uni-box-title">⚡ Impuesto Juego Completo — Camiseta + Short + Medias</div>
+    <div class="uni-box-row">
+      <span style="color:var(--muted)">Cargo adicional por juego de 3 piezas</span>
+      <span style="font-family:'Playfair Display',serif;font-size:20px;font-weight:700;color:var(--gold-lt)">$3.50 USD</span>
+    </div>
+    <div class="uni-box-row">
+      <span style="color:var(--muted)">Equivalente en Colones (₡)</span>
+      <span id="uni-tax-crc" style="color:var(--white)">₡1,802</span>
+    </div>
+    <div class="uni-box-row">
+      <span style="color:var(--muted)">Equivalente en Córdobas (C$)</span>
+      <span id="uni-tax-nio" style="color:var(--white)">C$128</span>
+    </div>
+    <div style="font-size:11px;color:var(--muted);margin-top:10px;font-weight:300">
+      Se aplica automáticamente al registrar una venta de juego completo.
+    </div>
+  </div>
+  <div class="price-section">
+    <div class="price-section-title">Precios de Fábrica — Lo que se paga al proveedor</div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Prenda / Tallas</th><th>Costo USD</th><th>Transporte</th><th>Total USD</th><th>En ₡ CRC</th><th>IVA 13%</th><th>Total con IVA (₡)</th></tr></thead>
+        <tbody id="tabla-fabrica"></tbody>
+      </table>
+    </div>
+  </div>
+  <div class="price-section">
+    <div class="price-section-title">Precios de Venta Web</div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Prenda</th><th>Costo total (₡)</th><th>Precio venta (₡)</th><th>Ganancia (₡)</th><th>Margen</th><th>USD</th><th>C$ NIO</th></tr></thead>
+        <tbody id="tabla-venta-web"></tbody>
+      </table>
+    </div>
+  </div>
+  <div class="stat-card" style="margin-top:4px">
+    <div class="stat-label">Tipos de cambio actuales</div>
+    <div style="display:flex;gap:28px;margin-top:12px;flex-wrap:wrap">
+      <span>🇨🇷 1 USD = <strong id="ref-crc" style="color:var(--gold-lt)">₡515</strong></span>
+      <span>🇳🇮 1 USD = <strong id="ref-nio" style="color:var(--gold-lt)">C$36.65</strong></span>
+      <span>🇵🇪 1 USD = <strong id="ref-pen" style="color:var(--gold-lt)">S/3.75</strong></span>
+    </div>
+  </div>
+</div>
+
+<!-- VENTAS -->
+<div id="page-ventas" class="page">
+  <div class="topbar">
+    <div><div class="page-title">Registro de <span class="gold">Ventas</span></div></div>
+    <button class="btn btn-gold" onclick="openModal('modal-venta')">+ Nueva Venta</button>
+  </div>
+  <div class="cards-grid" style="grid-template-columns:repeat(3,1fr)">
+    <div class="stat-card accent"><div class="stat-label">Total vendido (mes)</div><div class="stat-value gold" id="v-total-mes">₡0</div></div>
+    <div class="stat-card"><div class="stat-label">IVA cobrado (mes)</div><div class="stat-value" id="v-iva-mes">₡0</div></div>
+    <div class="stat-card"><div class="stat-label">Transacciones</div><div class="stat-value" id="v-count-mes">0</div></div>
+  </div>
+  <div id="lista-ventas"></div>
+</div>
+
+<!-- REPORTES -->
+<div id="page-reportes" class="page">
+  <div class="topbar">
+    <div><div class="page-title">Reportes <span class="gold">Financieros</span></div></div>
+    <button class="btn btn-outline" onclick="exportarCSV()">⬇ Exportar CSV</button>
+  </div>
+  <div class="two-col" style="margin-bottom:18px">
+    <div class="stat-card accent">
+      <div class="stat-label">Ganancia bruta del mes</div>
+      <div class="stat-value gold" id="rep-ganancia">₡0</div>
+      <div class="stat-sub">ventas − costos − IVA</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">IVA a declarar</div>
+      <div class="stat-value" id="rep-iva">₡0</div>
+      <div class="stat-sub">13% CR · 15% NI</div>
+    </div>
+  </div>
+  <div class="table-wrap">
+    <div class="table-header"><div class="table-title">Movimientos del mes</div></div>
+    <table>
+      <thead><tr><th>Fecha</th><th>ID Venta</th><th>Producto</th><th>Cant.</th><th>Subtotal</th><th>Imp.Uniforme</th><th>IVA</th><th>Total</th><th>País</th><th>Pago</th></tr></thead>
+      <tbody id="tabla-reportes"></tbody>
+    </table>
+  </div>
+</div>
+
+<!-- CONFIGURACIÓN -->
+<div id="page-configuracion" class="page">
+  <div class="topbar">
+    <div><div class="page-title">Configuración <span class="gold">del Sistema</span></div></div>
+  </div>
+  <div class="settings-section">
+    <div class="settings-title">Tipos de Cambio (1 USD =)</div>
+    <div class="settings-row">
+      <div><div class="settings-row-label">🇨🇷 Colones costarricenses (CRC)</div><div class="settings-row-sub">Actualizar según BCCR</div></div>
+      <div style="display:flex;align-items:center;gap:8px">
+        <input class="form-input" id="tc-crc" value="515" style="width:90px" onchange="saveConfig()">
+        <span style="color:var(--muted)">₡</span>
+      </div>
+    </div>
+    <div class="settings-row">
+      <div><div class="settings-row-label">🇳🇮 Córdobas nicaragüenses (NIO)</div></div>
+      <div style="display:flex;align-items:center;gap:8px">
+        <input class="form-input" id="tc-nio" value="36.65" style="width:90px" onchange="saveConfig()">
+        <span style="color:var(--muted)">C$</span>
+      </div>
+    </div>
+    <div class="settings-row">
+      <div><div class="settings-row-label">🇵🇪 Soles peruanos (PEN)</div><div class="settings-row-sub">Referencia de compra</div></div>
+      <div style="display:flex;align-items:center;gap:8px">
+        <input class="form-input" id="tc-pen" value="3.75" style="width:90px" onchange="saveConfig()">
+        <span style="color:var(--muted)">S/</span>
+      </div>
+    </div>
+  </div>
+  <div class="settings-section">
+    <div class="settings-title">Impuestos</div>
+    <div class="settings-row">
+      <div><div class="settings-row-label">IVA Costa Rica</div></div>
+      <div style="display:flex;align-items:center;gap:8px">
+        <input class="form-input" id="iva-cr" value="13" style="width:70px" onchange="saveConfig()">
+        <span style="color:var(--muted)">%</span>
+      </div>
+    </div>
+    <div class="settings-row">
+      <div><div class="settings-row-label">IVA Nicaragua</div></div>
+      <div style="display:flex;align-items:center;gap:8px">
+        <input class="form-input" id="iva-ni" value="15" style="width:70px" onchange="saveConfig()">
+        <span style="color:var(--muted)">%</span>
+      </div>
+    </div>
+    <div class="settings-row">
+      <div><div class="settings-row-label">⚡ Impuesto Juego Completo</div><div class="settings-row-sub">Cargo por camiseta + short + medias</div></div>
+      <div style="display:flex;align-items:center;gap:8px">
+        <span style="color:var(--muted)">$</span>
+        <input class="form-input" id="uni-tax" value="3.50" style="width:80px" onchange="saveConfig()">
+        <span style="color:var(--muted)">USD</span>
+      </div>
+    </div>
+  </div>
+  <div class="settings-section">
+    <div class="settings-title">Tabla de Precios — Prendas</div>
+    <div style="font-size:12px;color:var(--muted);margin-bottom:14px">Editá los costos y precios de venta. Los cambios se reflejan automáticamente en la sección Precios.</div>
+    <div id="config-prendas"></div>
+    <button class="btn btn-gold btn-sm" style="margin-top:8px" onclick="addPrenda()">+ Agregar prenda</button>
+  </div>
+
+  <div class="settings-section">
+    <div class="settings-title">Datos del Sistema</div>
+    <div class="settings-row">
+      <div><div class="settings-row-label">Borrar todos los datos</div><div class="settings-row-sub">Elimina productos y ventas — no se puede deshacer</div></div>
+      <button class="btn btn-danger btn-sm" onclick="resetData()">Borrar todo</button>
+    </div>
+  </div>
+</div>
+
+</main>
+</div>
+
+<!-- MODAL PRODUCTO -->
 <div class="modal-overlay" id="modal-producto">
   <div class="modal">
     <div class="modal-title" id="modal-prod-title">Nuevo Producto</div>
     <div class="form-grid">
       <div class="form-group form-full">
         <label class="form-label">Nombre del producto</label>
-        <input class="form-input" id="p-nombre" placeholder="Ej: Uniforme Fútbol Jaquard">
+        <input class="form-input" id="p-nombre" placeholder="Ej: Uniforme Fútbol Jaquard Saprissa">
       </div>
       <div class="form-group">
         <label class="form-label">Categoría</label>
@@ -492,27 +746,19 @@
       </div>
       <div class="form-group">
         <label class="form-label">Margen estimado (CR)</label>
-        <input class="form-input" id="p-margen" readonly placeholder="—">
+        <input class="form-input" id="p-margen" readonly placeholder="—" style="color:var(--gold-lt)">
       </div>
       <div class="form-group form-full">
         <label class="form-label">Tallas disponibles</label>
         <div class="tag-row">
-          <div class="tag" onclick="toggleTag(this)">2</div>
-          <div class="tag" onclick="toggleTag(this)">4</div>
-          <div class="tag" onclick="toggleTag(this)">6</div>
-          <div class="tag" onclick="toggleTag(this)">8</div>
-          <div class="tag" onclick="toggleTag(this)">10</div>
-          <div class="tag" onclick="toggleTag(this)">12</div>
-          <div class="tag" onclick="toggleTag(this)">14</div>
-          <div class="tag" onclick="toggleTag(this)">16</div>
-          <div class="tag" onclick="toggleTag(this)">XS</div>
-          <div class="tag" onclick="toggleTag(this)">S</div>
-          <div class="tag" onclick="toggleTag(this)">M</div>
-          <div class="tag" onclick="toggleTag(this)">L</div>
-          <div class="tag" onclick="toggleTag(this)">XL</div>
-          <div class="tag" onclick="toggleTag(this)">2XL</div>
-          <div class="tag" onclick="toggleTag(this)">3XL</div>
-          <div class="tag" onclick="toggleTag(this)">Única</div>
+          <div class="tag" onclick="toggleTag(this)">2</div><div class="tag" onclick="toggleTag(this)">4</div>
+          <div class="tag" onclick="toggleTag(this)">6</div><div class="tag" onclick="toggleTag(this)">8</div>
+          <div class="tag" onclick="toggleTag(this)">10</div><div class="tag" onclick="toggleTag(this)">12</div>
+          <div class="tag" onclick="toggleTag(this)">14</div><div class="tag" onclick="toggleTag(this)">16</div>
+          <div class="tag" onclick="toggleTag(this)">XS</div><div class="tag" onclick="toggleTag(this)">S</div>
+          <div class="tag" onclick="toggleTag(this)">M</div><div class="tag" onclick="toggleTag(this)">L</div>
+          <div class="tag" onclick="toggleTag(this)">XL</div><div class="tag" onclick="toggleTag(this)">2XL</div>
+          <div class="tag" onclick="toggleTag(this)">3XL</div><div class="tag" onclick="toggleTag(this)">Única</div>
         </div>
       </div>
       <div class="form-group form-full">
@@ -529,16 +775,16 @@
       </div>
     </div>
     <div class="modal-footer">
-      <button class="btn btn-ghost" onclick="closeModal('modal-producto')">Cancelar</button>
-      <button class="btn btn-primary" onclick="guardarProducto()">Guardar</button>
+      <button class="btn btn-outline" onclick="closeModal('modal-producto')">Cancelar</button>
+      <button class="btn btn-gold" onclick="guardarProducto()">Guardar producto</button>
     </div>
   </div>
 </div>
 
-<!-- MODAL: VENTA -->
+<!-- MODAL VENTA -->
 <div class="modal-overlay" id="modal-venta">
   <div class="modal">
-    <div class="modal-title">Nueva Venta</div>
+    <div class="modal-title">Registrar Venta</div>
     <div class="form-grid">
       <div class="form-group">
         <label class="form-label">País de venta</label>
@@ -561,33 +807,34 @@
         <input class="form-input" id="v-cliente" placeholder="Nombre del cliente">
       </div>
     </div>
-
-    <div style="margin:16px 0 8px;font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--silver)">Productos vendidos</div>
+    <div style="margin:18px 0 8px;font-size:10px;text-transform:uppercase;letter-spacing:1.5px;color:var(--muted);font-weight:600">Productos vendidos</div>
     <div id="v-items-lista"></div>
-    <button class="btn btn-ghost btn-sm" style="margin-top:8px" onclick="addVentaItem()">+ Agregar producto</button>
+    <button class="btn btn-outline btn-sm" style="margin-top:10px" onclick="addVentaItem()">+ Agregar producto</button>
 
-    <!-- UNIFORME TAX INFO -->
-    <div class="uni-box" id="v-uni-box" style="margin-top:14px;display:none">
+    <div class="uni-box" id="v-uni-box" style="display:none">
       <div class="uni-box-title">⚡ Juego(s) completo(s) detectado(s)</div>
       <div class="uni-box-row">
-        <span style="color:var(--silver)">Juegos completos en esta venta</span>
-        <span id="v-uni-count" style="color:var(--volt);font-weight:700">0</span>
+        <span style="color:var(--muted)">Juegos en esta venta</span>
+        <span id="v-uni-count" style="color:var(--gold-lt);font-weight:700">0</span>
       </div>
       <div class="uni-box-row">
-        <span style="color:var(--silver)">Impuesto uniforme ($3.50 × juegos)</span>
-        <span id="v-uni-tax-display" style="color:var(--volt)">₡0</span>
+        <span style="color:var(--muted)">Impuesto ($3.50 × juegos)</span>
+        <span id="v-uni-tax-display" style="color:var(--gold-lt)">₡0</span>
       </div>
     </div>
 
-    <div style="margin-top:16px;padding:14px;background:var(--black);border-radius:4px">
-      <div class="venta-total-row"><span style="color:var(--silver)">Subtotal</span><span id="v-subtotal">₡0</span></div>
-      <div class="venta-total-row"><span style="color:var(--silver)" id="v-iva-label">IVA 13%</span><span id="v-iva-monto">₡0</span></div>
-      <div class="venta-total-row" id="v-uni-row" style="display:none"><span style="color:var(--volt)">⚡ Impuesto uniformes</span><span id="v-uni-subtotal" style="color:var(--volt)">₡0</span></div>
+    <div style="margin-top:16px;padding:16px;background:var(--ink);border-radius:8px;border:1px solid var(--graphite)">
+      <div class="venta-total-row"><span style="color:var(--muted)">Subtotal</span><span id="v-subtotal">₡0</span></div>
+      <div class="venta-total-row"><span style="color:var(--muted)" id="v-iva-label">IVA 13%</span><span id="v-iva-monto">₡0</span></div>
+      <div class="venta-total-row" id="v-uni-row" style="display:none">
+        <span style="color:var(--gold-lt)">⚡ Impuesto uniformes</span>
+        <span id="v-uni-subtotal" style="color:var(--gold-lt)">₡0</span>
+      </div>
       <div class="venta-total-row grand"><span>TOTAL</span><span id="v-total-final">₡0</span></div>
     </div>
     <div class="modal-footer">
-      <button class="btn btn-ghost" onclick="closeModal('modal-venta')">Cancelar</button>
-      <button class="btn btn-primary" onclick="registrarVenta()">Registrar venta</button>
+      <button class="btn btn-outline" onclick="closeModal('modal-venta')">Cancelar</button>
+      <button class="btn btn-gold" onclick="registrarVenta()">Registrar venta</button>
     </div>
   </div>
 </div>
@@ -595,183 +842,163 @@
 <div class="toast" id="toast"></div>
 
 <script>
-// ===================== LOGO =====================
-const LOGO_B64 = "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";
-document.getElementById('sidebar-logo').src = 'data:image/png;base64,' + LOGO_B64;
+// ── LOGO ──
+const LOGO='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';
+document.getElementById('logo-img').src='data:image/png;base64,'+LOGO;
 
-// ===================== STATE =====================
-let state = {
-  productos:[],
-  ventas:[],
-  config:{tc_crc:515, tc_nio:36.65, tc_pen:3.75, iva_cr:13, iva_ni:15, uni_tax:3.50}
-};
-let editingId = null;
-let ventaItems = [];
+// ── STATE ──
+let state={productos:[],ventas:[],config:{tc_crc:515,tc_nio:36.65,tc_pen:3.75,iva_cr:13,iva_ni:15,uni_tax:3.50}};
+let editingId=null,ventaItems=[];
 
 function loadState(){
-  try{
-    const s = localStorage.getItem('sixsport_v2');
-    if(s) state = {...state,...JSON.parse(s)};
-  }catch(e){}
-  document.getElementById('tc-crc').value = state.config.tc_crc;
-  document.getElementById('tc-nio').value = state.config.tc_nio;
-  document.getElementById('tc-pen').value = state.config.tc_pen;
-  document.getElementById('iva-cr').value = state.config.iva_cr;
-  document.getElementById('iva-ni').value = state.config.iva_ni;
-  document.getElementById('uni-tax').value = state.config.uni_tax;
+  try{const s=localStorage.getItem('sixsport_v3');if(s)state={...state,...JSON.parse(s)};}catch(e){}
+  document.getElementById('tc-crc').value=state.config.tc_crc;
+  document.getElementById('tc-nio').value=state.config.tc_nio;
+  document.getElementById('tc-pen').value=state.config.tc_pen;
+  document.getElementById('iva-cr').value=state.config.iva_cr;
+  document.getElementById('iva-ni').value=state.config.iva_ni;
+  document.getElementById('uni-tax').value=state.config.uni_tax;
 }
-function saveState(){ localStorage.setItem('sixsport_v2', JSON.stringify(state)); }
+function saveState(){localStorage.setItem('sixsport_v3',JSON.stringify(state));}
 function saveConfig(){
-  state.config.tc_crc = parseFloat(document.getElementById('tc-crc').value)||515;
-  state.config.tc_nio = parseFloat(document.getElementById('tc-nio').value)||36.65;
-  state.config.tc_pen = parseFloat(document.getElementById('tc-pen').value)||3.75;
-  state.config.iva_cr = parseFloat(document.getElementById('iva-cr').value)||13;
-  state.config.iva_ni = parseFloat(document.getElementById('iva-ni').value)||15;
-  state.config.uni_tax = parseFloat(document.getElementById('uni-tax').value)||3.50;
-  saveState();
-  showToast('Configuración guardada');
+  state.config.tc_crc=parseFloat(document.getElementById('tc-crc').value)||515;
+  state.config.tc_nio=parseFloat(document.getElementById('tc-nio').value)||36.65;
+  state.config.tc_pen=parseFloat(document.getElementById('tc-pen').value)||3.75;
+  state.config.iva_cr=parseFloat(document.getElementById('iva-cr').value)||13;
+  state.config.iva_ni=parseFloat(document.getElementById('iva-ni').value)||15;
+  state.config.uni_tax=parseFloat(document.getElementById('uni-tax').value)||3.50;
+  saveState();showToast('Configuración guardada');
 }
-function resetData(){
-  if(!confirm('¿Borrar todos los datos?')) return;
-  state.productos=[]; state.ventas=[]; saveState(); showToast('Datos eliminados');
-}
+function resetData(){if(!confirm('¿Borrar todos los datos?'))return;state.productos=[];state.ventas=[];saveState();showToast('Datos eliminados');}
 
-// ===================== NAV =====================
-function showPage(id, el){
+// ── NAV ──
+function showPage(id,el){
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
   document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
   document.getElementById('page-'+id).classList.add('active');
-  if(el) el.classList.add('active');
-  if(id==='dashboard') renderDashboard();
-  if(id==='inventario') renderInventario();
-  if(id==='precios') renderPrecios();
-  if(id==='ventas') renderVentas();
-  if(id==='reportes') renderReportes();
+  if(el)el.classList.add('active');
+  if(id==='dashboard')renderDashboard();
+  if(id==='inventario')renderInventario();
+  if(id==='precios')renderPrecios();
+  if(id==='ventas')renderVentas();
+  if(id==='reportes')renderReportes();
+  if(id==='configuracion')renderConfigPrendas();
 }
 
-// ===================== UTILS =====================
-function fmt(n){ return Number(n).toLocaleString('es',{minimumFractionDigits:0,maximumFractionDigits:0}); }
-function fmtMoney(n, pais){ return (pais==='NI'?'C$':'₡')+fmt(n); }
-function usdToCRC(usd){ return usd * state.config.tc_crc; }
-function usdToNIO(usd){ return usd * state.config.tc_nio; }
+// ── UTILS ──
+function fmt(n){return Number(n).toLocaleString('es',{minimumFractionDigits:0,maximumFractionDigits:0});}
+function fmtM(n,pais){return(pais==='NI'?'C$':'₡')+fmt(n);}
 
-// ===================== DASHBOARD =====================
+// ── DASHBOARD ──
 function renderDashboard(){
-  const now = new Date();
-  document.getElementById('current-date').textContent = now.toLocaleDateString('es-CR',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
-  document.getElementById('dash-productos').textContent = state.productos.length;
-  document.getElementById('dash-stock').textContent = state.productos.reduce((a,p)=>a+(parseInt(p.stock)||0),0);
-  const mes = now.getMonth(), yr = now.getFullYear();
-  const vm = state.ventas.filter(v=>{const d=new Date(v.fecha);return d.getMonth()===mes&&d.getFullYear()===yr;});
-  document.getElementById('dash-ventas').textContent = vm.length;
-  document.getElementById('dash-ventas-monto').textContent = '₡'+fmt(vm.reduce((a,v)=>a+v.total,0));
-  document.getElementById('dash-alertas').textContent = state.productos.filter(p=>(parseInt(p.stock)||0)<=(parseInt(p.stockMin)||5)).length;
-
-  // Chart
-  const cEl=document.getElementById('dash-chart'), lEl=document.getElementById('dash-chart-labels');
-  cEl.innerHTML=''; lEl.innerHTML='';
-  const days=[]; for(let i=6;i>=0;i--){const d=new Date();d.setDate(d.getDate()-i);days.push(d);}
+  const now=new Date();
+  document.getElementById('current-date').textContent=now.toLocaleDateString('es-CR',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
+  document.getElementById('dash-productos').textContent=state.productos.length;
+  document.getElementById('dash-stock').textContent=state.productos.reduce((a,p)=>a+(parseInt(p.stock)||0),0);
+  const mes=now.getMonth(),yr=now.getFullYear();
+  const vm=state.ventas.filter(v=>{const d=new Date(v.fecha);return d.getMonth()===mes&&d.getFullYear()===yr;});
+  document.getElementById('dash-ventas').textContent=vm.length;
+  document.getElementById('dash-ventas-monto').textContent='₡'+fmt(vm.reduce((a,v)=>a+v.total,0));
+  document.getElementById('dash-alertas').textContent=state.productos.filter(p=>(parseInt(p.stock)||0)<=(parseInt(p.stockMin)||5)).length;
+  const cEl=document.getElementById('dash-chart'),lEl=document.getElementById('dash-chart-labels');
+  cEl.innerHTML='';lEl.innerHTML='';
+  const days=[];for(let i=6;i>=0;i--){const d=new Date();d.setDate(d.getDate()-i);days.push(d);}
   const vals=days.map(d=>state.ventas.filter(v=>new Date(v.fecha).toDateString()===d.toDateString()).reduce((a,v)=>a+v.total,0));
   const mx=Math.max(...vals,1);
   days.forEach((d,i)=>{
-    const h=Math.max(4,Math.round((vals[i]/mx)*70));
-    cEl.innerHTML+=`<div class="chart-bar" style="height:${h}px"></div>`;
+    const h=Math.max(4,Math.round((vals[i]/mx)*72));
+    cEl.innerHTML+=`<div class="chart-bar" style="height:${h}px" title="₡${fmt(vals[i])}"></div>`;
     lEl.innerHTML+=`<div class="chart-label">${d.toLocaleDateString('es',{weekday:'short'})}</div>`;
   });
-
-  // Low stock
   const lsEl=document.getElementById('dash-low-stock');
   const bajos=state.productos.filter(p=>(parseInt(p.stock)||0)<=(parseInt(p.stockMin)||5));
-  lsEl.innerHTML=bajos.length===0?'<div style="color:var(--success);font-size:13px">✓ Todo el stock es suficiente</div>':
-    bajos.map(p=>`<div style="display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--graphite);font-size:13px"><span>${p.nombre}</span><span class="badge ${parseInt(p.stock)===0?'badge-out':'badge-low'}">${p.stock} uds</span></div>`).join('');
+  lsEl.innerHTML=bajos.length===0
+    ?'<div style="color:#4CAF82;font-size:13px;font-weight:500">✓ Todo el stock es suficiente</div>'
+    :bajos.map(p=>`<div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--graphite);font-size:13px"><span>${p.nombre}</span><span class="badge ${parseInt(p.stock)===0?'badge-out':'badge-low'}">${p.stock} uds</span></div>`).join('');
 }
 
-// ===================== INVENTARIO =====================
-let filtroInv='todos', busqInv='';
-function filterInv(f,el){ filtroInv=f; document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active')); el.classList.add('active'); renderInventario(); }
-function searchInv(v){ busqInv=v; renderInventario(); }
-
+// ── INVENTARIO ──
+let filtroInv='todos',busqInv='';
+function filterInv(f,el){filtroInv=f;document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));el.classList.add('active');renderInventario();}
+function searchInv(v){busqInv=v;renderInventario();}
 function renderInventario(){
   let prods=[...state.productos];
-  if(filtroInv==='CR') prods=prods.filter(p=>p.mercado==='CR'||p.mercado==='AMBOS');
-  if(filtroInv==='NI') prods=prods.filter(p=>p.mercado==='NI'||p.mercado==='AMBOS');
-  if(filtroInv==='bajo') prods=prods.filter(p=>(parseInt(p.stock)||0)<=(parseInt(p.stockMin)||5));
-  if(busqInv) prods=prods.filter(p=>p.nombre.toLowerCase().includes(busqInv.toLowerCase()));
+  if(filtroInv==='CR')prods=prods.filter(p=>p.mercado==='CR'||p.mercado==='AMBOS');
+  if(filtroInv==='NI')prods=prods.filter(p=>p.mercado==='NI'||p.mercado==='AMBOS');
+  if(filtroInv==='bajo')prods=prods.filter(p=>(parseInt(p.stock)||0)<=(parseInt(p.stockMin)||5));
+  if(busqInv)prods=prods.filter(p=>p.nombre.toLowerCase().includes(busqInv.toLowerCase()));
   const tbody=document.getElementById('tabla-inventario');
-  if(!prods.length){tbody.innerHTML=`<tr><td colspan="10" style="text-align:center;padding:28px;color:var(--silver)">Sin productos. Agrega el primero.</td></tr>`;return;}
+  if(!prods.length){tbody.innerHTML=`<tr><td colspan="10" style="text-align:center;padding:32px;color:var(--muted)">Sin productos. Agrega el primero con el botón "Nuevo Producto".</td></tr>`;return;}
   tbody.innerHTML=prods.map(p=>{
-    const stock=parseInt(p.stock)||0, mn=parseInt(p.stockMin)||5;
+    const stock=parseInt(p.stock)||0,mn=parseInt(p.stockMin)||5;
     const sb=stock===0?'badge-out':stock<=mn?'badge-low':'badge-ok';
-    const sl=stock===0?'Sin stock':stock<=mn?'Stock bajo':'OK';
-    const mb=p.mercado==='CR'?'badge-cr':p.mercado==='NI'?'badge-ni':'badge-pe';
+    const sl=stock===0?'Sin stock':stock<=mn?'Bajo':'OK';
+    const mb=p.mercado==='CR'?'badge-cr':p.mercado==='NI'?'badge-ni':'badge-cr';
     const ml=p.mercado==='CR'?'🇨🇷 CR':p.mercado==='NI'?'🇳🇮 NI':'🌎 Ambos';
+    const esUni=p.categoria==='Uniforme Completo (3 piezas)';
     const chips=(p.tallas||[]).map(t=>`<span class="chip">${t}</span>`).join('');
-    const esCat = p.categoria==='Uniforme Completo (3 piezas)';
     return `<tr>
-      <td><strong>${p.nombre}</strong>${esCat?'<span class="badge badge-uni" style="margin-left:6px">⚡ Juego</span>':''}</td>
+      <td><strong>${p.nombre}</strong>${esUni?'<span class="badge badge-uni" style="margin-left:6px;vertical-align:middle">⚡ Juego</span>':''}</td>
       <td style="color:var(--silver);font-size:12px">${p.categoria}</td>
-      <td><div class="variant-chips">${chips}</div>${p.colores?`<div style="font-size:11px;color:var(--silver);margin-top:3px">${p.colores}</div>`:''}</td>
-      <td>$${Number(p.costo).toFixed(2)} <span style="color:var(--silver);font-size:11px">${p.monedaCosto||'USD'}</span></td>
+      <td><div class="chips">${chips}</div>${p.colores?`<div style="font-size:11px;color:var(--muted);margin-top:3px">${p.colores}</div>`:''}</td>
+      <td style="color:var(--gold-lt);font-weight:500">$${Number(p.costo).toFixed(2)}</td>
       <td>${p.precioCR?'₡'+fmt(p.precioCR):'—'}</td>
       <td>${p.precioNI?'C$'+fmt(p.precioNI):'—'}</td>
-      <td><strong>${stock}</strong></td>
+      <td><strong style="font-size:15px">${stock}</strong></td>
       <td><span class="badge ${mb}">${ml}</span></td>
       <td><span class="badge ${sb}">${sl}</span></td>
-      <td><div class="btn-row"><button class="btn btn-ghost btn-sm" onclick="editProd('${p.id}')">✏️</button><button class="btn btn-ghost btn-sm" onclick="delProd('${p.id}')">🗑</button></div></td>
+      <td><div class="btn-row"><button class="btn btn-outline btn-sm" onclick="editProd('${p.id}')">✏</button><button class="btn btn-outline btn-sm" onclick="delProd('${p.id}')">✕</button></div></td>
     </tr>`;
   }).join('');
 }
 
-// ===================== PRODUCTO MODAL =====================
-function toggleTag(el){ el.classList.toggle('selected'); }
+function toggleTag(el){el.classList.toggle('selected');}
 function calcMargen(){
   const costo=parseFloat(document.getElementById('p-costo').value)||0;
   const precioCR=parseFloat(document.getElementById('p-precio-cr').value)||0;
   const moneda=document.getElementById('p-moneda-costo').value;
-  let costoEnCRC = costo;
-  if(moneda==='USD') costoEnCRC = costo*state.config.tc_crc;
-  else if(moneda==='PEN') costoEnCRC = costo*(state.config.tc_crc/state.config.tc_pen);
+  let costoEnCRC=costo;
+  if(moneda==='USD')costoEnCRC=costo*state.config.tc_crc;
+  else if(moneda==='PEN')costoEnCRC=costo*(state.config.tc_crc/state.config.tc_pen);
   const el=document.getElementById('p-margen');
   if(costoEnCRC>0&&precioCR>0){
     const m=((precioCR-costoEnCRC)/precioCR*100).toFixed(1);
     el.value=m+'%';
-    el.style.color=m>0?'var(--volt)':'var(--danger)';
-  } else { el.value=''; }
+    el.style.color=m>0?'var(--gold-lt)':'var(--danger)';
+  }else{el.value='';}
 }
 
-function openModal(id){ document.getElementById(id).classList.add('open'); if(id==='modal-venta'){ventaItems=[];document.getElementById('v-items-lista').innerHTML='';updateVentaUI();addVentaItem();} }
-function closeModal(id){ document.getElementById(id).classList.remove('open'); if(id==='modal-producto'){resetProdForm();} }
+function openModal(id){document.getElementById(id).classList.add('open');if(id==='modal-venta'){ventaItems=[];document.getElementById('v-items-lista').innerHTML='';updateVentaUI();addVentaItem();}}
+function closeModal(id){document.getElementById(id).classList.remove('open');if(id==='modal-producto')resetProdForm();}
 function resetProdForm(){
   ['p-nombre','p-costo','p-precio-cr','p-precio-ni','p-stock','p-stock-min','p-colores','p-margen'].forEach(id=>{const e=document.getElementById(id);if(e)e.value='';});
   document.querySelectorAll('#modal-producto .tag').forEach(t=>t.classList.remove('selected'));
   document.getElementById('modal-prod-title').textContent='Nuevo Producto';
   editingId=null;
 }
-
 function guardarProducto(){
   const nombre=document.getElementById('p-nombre').value.trim();
-  if(!nombre){showToast('Ingresa el nombre');return;}
+  if(!nombre){showToast('Ingresa el nombre del producto');return;}
   const tallas=[...document.querySelectorAll('#modal-producto .tag.selected')].map(t=>t.textContent);
   const prod={
-    id:editingId||Date.now().toString(), nombre,
+    id:editingId||Date.now().toString(),nombre,
     categoria:document.getElementById('p-categoria').value,
     mercado:document.getElementById('p-mercado').value,
     monedaCosto:document.getElementById('p-moneda-costo').value,
     costo:document.getElementById('p-costo').value||0,
     precioCR:document.getElementById('p-precio-cr').value||0,
     precioNI:document.getElementById('p-precio-ni').value||0,
-    tallas, colores:document.getElementById('p-colores').value,
+    tallas,colores:document.getElementById('p-colores').value,
     stock:document.getElementById('p-stock').value||0,
     stockMin:document.getElementById('p-stock-min').value||5
   };
-  if(editingId){ const i=state.productos.findIndex(p=>p.id===editingId); if(i!==-1) state.productos[i]=prod; }
+  if(editingId){const i=state.productos.findIndex(p=>p.id===editingId);if(i!==-1)state.productos[i]=prod;}
   else state.productos.push(prod);
-  saveState(); closeModal('modal-producto'); renderInventario();
-  showToast(editingId?'Producto actualizado':'Producto agregado');
+  saveState();closeModal('modal-producto');renderInventario();
+  showToast(editingId?'Producto actualizado ✓':'Producto agregado ✓');
 }
-
 function editProd(id){
-  const p=state.productos.find(x=>x.id===id); if(!p) return;
+  const p=state.productos.find(x=>x.id===id);if(!p)return;
   editingId=id;
   document.getElementById('p-nombre').value=p.nombre;
   document.getElementById('p-categoria').value=p.categoria;
@@ -785,103 +1012,165 @@ function editProd(id){
   document.getElementById('p-stock-min').value=p.stockMin;
   document.querySelectorAll('#modal-producto .tag').forEach(t=>t.classList.toggle('selected',(p.tallas||[]).includes(t.textContent)));
   document.getElementById('modal-prod-title').textContent='Editar Producto';
-  openModal('modal-producto'); calcMargen();
+  openModal('modal-producto');calcMargen();
 }
-function delProd(id){
-  if(!confirm('¿Eliminar este producto?')) return;
-  state.productos=state.productos.filter(p=>p.id!==id); saveState(); renderInventario(); showToast('Eliminado');
+function delProd(id){if(!confirm('¿Eliminar este producto?'))return;state.productos=state.productos.filter(p=>p.id!==id);saveState();renderInventario();showToast('Producto eliminado');}
+
+// ── PRECIOS (vivos desde config) ──
+function getPrendas(){
+  return state.config.prendas || [
+    // ACADEMIAS — tallas niño (2-16) y adulto (XS-2XL)
+    {tipo:'Academias Morado Niño (Uniforme)',costoUSD:19.00,transporte:3.50,precioVentaCRC:0,esJuego:true, tallas:'2,4,6,8,10,12,14,16'},
+    {tipo:'Academias Morado (Uniforme)',costoUSD:21.02,transporte:3.50,precioVentaCRC:0,esJuego:true, tallas:'XS,S,M,L,XL,2XL'},
+    {tipo:'Academias Morado XXL (Uniforme)',costoUSD:21.92,transporte:3.50,precioVentaCRC:0,esJuego:true, tallas:'2XL,3XL'},
+    {tipo:'Academias Portero Niño (Uniforme)',costoUSD:19.00,transporte:3.50,precioVentaCRC:0,esJuego:true, tallas:'2,4,6,8,10,12,14,16'},
+    {tipo:'Academias Portero (Uniforme)',costoUSD:21.02,transporte:3.50,precioVentaCRC:0,esJuego:true, tallas:'XS,S,M,L,XL,2XL'},
+    {tipo:'Academias Entreno Niño (Camiseta)',costoUSD:8.41,transporte:3.50,precioVentaCRC:0,esJuego:false, tallas:'2,4,6,8,10,12,14,16'},
+    {tipo:'Academias Entreno (Camiseta)',costoUSD:8.71,transporte:3.50,precioVentaCRC:0,esJuego:false, tallas:'XS,S,M,L,XL,2XL'},
+    // PROCESOS
+    {tipo:'Procesos Morado Niño (Uniforme)',costoUSD:18.12,transporte:3.50,precioVentaCRC:0,esJuego:true, tallas:'2,4,6,8,10,12,14,16'},
+    {tipo:'Procesos Morado (Uniforme)',costoUSD:20.12,transporte:3.50,precioVentaCRC:0,esJuego:true, tallas:'XS,S,M,L,XL,2XL'},
+    {tipo:'Procesos Blanco Niño (Uniforme)',costoUSD:18.12,transporte:3.50,precioVentaCRC:0,esJuego:true, tallas:'2,4,6,8,10,12,14,16'},
+    {tipo:'Procesos Blanco (Uniforme)',costoUSD:20.12,transporte:3.50,precioVentaCRC:0,esJuego:true, tallas:'XS,S,M,L,XL,2XL'},
+    {tipo:'Procesos Portero Niño (Uniforme)',costoUSD:18.12,transporte:3.50,precioVentaCRC:0,esJuego:true, tallas:'2,4,6,8,10,12,14,16'},
+    {tipo:'Procesos Portero (Uniforme)',costoUSD:20.12,transporte:3.50,precioVentaCRC:0,esJuego:true, tallas:'XS,S,M,L,XL,2XL'},
+  ];
 }
-
-// ===================== PRECIOS =====================
-const PRECIOS_FABRICA = [
-  {tipo:'Uniforme fútbol tela jaquard (Camiseta+Pantaloneta+Medias)',base:15900,iva:2067,total:17967},
-  {tipo:'Camiseta Deportiva Polo tela jaquard',base:16500,iva:2145,total:18645},
-  {tipo:'Camiseta Academias tela jaquard (Padres)',base:13500,iva:1755,total:15255},
-  {tipo:'Camiseta Entreno tela básica',base:8550,iva:1111.5,total:9661.5},
-];
-const PRECIOS_VENTA = [
-  {tipo:'Uniforme fútbol tela jaquard (Camiseta+Pantaloneta+Medias)',sinIva:22533,iva:3367,conIva:25900,ganancia:7933},
-  {tipo:'Camiseta Deportiva Polo tela jaquard',sinIva:20793,iva:3107,conIva:23900,ganancia:5255},
-  {tipo:'Camiseta Academias tela jaquard (Padres)',sinIva:19053,iva:2847,conIva:21900,ganancia:6645},
-  {tipo:'Camiseta Entreno tela básica',sinIva:12963,iva:1937,conIva:14900,ganancia:5238.5},
-];
-
+function calcP(r){
+  const tc=state.config.tc_crc,iva=state.config.iva_cr/100;
+  const totalUSD=r.costoUSD+(r.transporte||0);
+  const totalCRC=totalUSD*tc;
+  const conIva=totalCRC*(1+iva);
+  const pventa=r.precioVentaCRC>0?r.precioVentaCRC:Math.ceil(conIva*1.3/100)*100;
+  const gan=pventa-conIva;
+  return {totalUSD,totalCRC,conIva,pventa,gan,margen:((gan/pventa)*100).toFixed(1)};
+}
 function renderPrecios(){
-  const tc=state.config.tc_crc, tnio=state.config.tc_nio;
-  // update references
+  const tc=state.config.tc_crc,tnio=state.config.tc_nio;
   document.getElementById('ref-crc').textContent='₡'+state.config.tc_crc;
   document.getElementById('ref-nio').textContent='C$'+state.config.tc_nio;
   document.getElementById('ref-pen').textContent='S/'+state.config.tc_pen;
-  // uni tax
   document.getElementById('uni-tax-crc').textContent='₡'+fmt(state.config.uni_tax*tc);
-  document.getElementById('uni-tax-nio').textContent='C$'+(state.config.uni_tax*tnio).toFixed(2);
-  // fabrica
-  document.getElementById('tabla-fabrica').innerHTML=PRECIOS_FABRICA.map(r=>`<tr>
-    <td>${r.tipo}</td>
-    <td>₡${fmt(r.base)}</td>
-    <td style="color:var(--silver)">₡${fmt(r.iva)}</td>
-    <td><strong>₡${fmt(r.total)}</strong></td>
-    <td style="color:var(--silver)">$${(r.total/tc).toFixed(2)}</td>
-  </tr>`).join('');
-  // venta
-  document.getElementById('tabla-venta-web').innerHTML=PRECIOS_VENTA.map(r=>`<tr>
-    <td>${r.tipo}</td>
-    <td>₡${fmt(r.sinIva)}</td>
-    <td style="color:var(--silver)">₡${fmt(r.iva)}</td>
-    <td><strong>₡${fmt(r.conIva)}</strong></td>
-    <td style="color:var(--success)">₡${fmt(r.ganancia)}</td>
-    <td style="color:var(--silver)">$${(r.conIva/tc).toFixed(2)}</td>
-    <td style="color:var(--silver)">C$${fmt(r.conIva/tc*tnio)}</td>
-  </tr>`).join('');
+  document.getElementById('uni-tax-nio').textContent='C$'+(state.config.uni_tax*tnio).toFixed(0);
+  const prendas=getPrendas();
+  document.getElementById('tabla-fabrica').innerHTML=prendas.map(r=>{
+    const c=calcP(r);
+    return `<tr>
+      <td style="font-weight:500">${r.tipo}<br><span style="font-size:10px;color:var(--muted)">${r.tallas||''}</span></td>
+      <td style="color:var(--gold-lt)">$${Number(r.costoUSD).toFixed(2)}</td>
+      <td style="color:var(--muted)">$${Number(r.transporte||0).toFixed(2)}</td>
+      <td><strong style="color:var(--gold-lt)">$${c.totalUSD.toFixed(2)}</strong></td>
+      <td>₡${fmt(c.totalCRC)}</td>
+      <td style="color:var(--muted)">₡${fmt(c.totalCRC*state.config.iva_cr/100)}</td>
+      <td><strong>₡${fmt(c.conIva)}</strong></td>
+    </tr>`;
+  }).join('');
+  document.getElementById('tabla-venta-web').innerHTML=prendas.map(r=>{
+    const c=calcP(r);
+    const col=c.gan>0?'#4CAF82':'var(--danger)';
+    return `<tr>
+      <td style="font-weight:500">${r.tipo}${r.esJuego?'<span class="badge badge-uni" style="margin-left:6px">⚡ Juego</span>':''}</td>
+      <td>₡${fmt(c.conIva)}</td>
+      <td><strong>₡${fmt(c.pventa)}</strong></td>
+      <td style="color:${col};font-weight:700">₡${fmt(c.gan)}</td>
+      <td style="color:${col}">${c.margen}%</td>
+      <td style="color:var(--muted)">$${(c.pventa/tc).toFixed(2)}</td>
+      <td style="color:var(--muted)">C$${fmt(c.pventa/tc*tnio)}</td>
+    </tr>`;
+  }).join('');
+}
+function renderConfigPrendas(){
+  const prendas=getPrendas();
+  document.getElementById('config-prendas').innerHTML=prendas.map((r,i)=>{
+    const c=calcP(r);
+    return `
+    <div style="background:var(--graphite);border:1px solid var(--steel);border-radius:8px;padding:14px;margin-bottom:10px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;gap:10px;flex-wrap:wrap">
+        <input class="form-input" value="${r.tipo}" style="flex:1;min-width:200px;font-weight:600" onchange="updatePrenda(${i},'tipo',this.value)">
+        <label style="display:flex;align-items:center;gap:6px;font-size:12px;color:var(--muted);cursor:pointer;white-space:nowrap">
+          <input type="checkbox" ${r.esJuego?'checked':''} onchange="updatePrenda(${i},'esJuego',this.checked)"> ⚡ Juego completo
+        </label>
+        <button class="btn btn-danger btn-sm" onclick="deletePrenda(${i})">✕</button>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:10px">
+        <div class="form-group">
+          <label class="form-label">Costo proveedor (USD)</label>
+          <input class="form-input" type="number" step="0.01" value="${r.costoUSD}" onchange="updatePrenda(${i},'costoUSD',+this.value)">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Transporte / Impuesto (USD)</label>
+          <input class="form-input" type="number" step="0.01" value="${r.transporte||3.50}" onchange="updatePrenda(${i},'transporte',+this.value)">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Precio venta (₡) — 0 = auto</label>
+          <input class="form-input" type="number" value="${r.precioVentaCRC||0}" onchange="updatePrenda(${i},'precioVentaCRC',+this.value)">
+        </div>
+      </div>
+      <div class="form-group" style="margin-bottom:10px">
+        <label class="form-label">Tallas disponibles</label>
+        <input class="form-input" value="${r.tallas||''}" placeholder="Ej: 2,4,6,8,XS,S,M,L" onchange="updatePrenda(${i},'tallas',this.value)">
+      </div>
+      <div style="display:flex;gap:16px;flex-wrap:wrap;font-size:11px;padding:8px;background:var(--ink);border-radius:6px">
+        <span>Total USD: <strong style="color:var(--gold-lt)">$${c.totalUSD.toFixed(2)}</strong></span>
+        <span>En ₡: <strong style="color:var(--white)">₡${fmt(c.totalCRC)}</strong></span>
+        <span>Con IVA: <strong style="color:var(--white)">₡${fmt(c.conIva)}</strong></span>
+        <span>Precio venta: <strong style="color:var(--gold-lt)">₡${fmt(c.pventa)}</strong></span>
+        <span>Ganancia: <strong style="color:${c.gan>0?'#4CAF82':'var(--danger)'}">${c.margen}% — ₡${fmt(c.gan)}</strong></span>
+      </div>
+    </div>`}).join('');
+}
+function updatePrenda(idx,field,val){
+  if(!state.config.prendas) state.config.prendas=getPrendas();
+  state.config.prendas[idx][field]=val;
+  saveState();
+  renderConfigPrendas();
+}
+function deletePrenda(idx){
+  if(!confirm('¿Eliminar esta prenda?'))return;
+  if(!state.config.prendas) state.config.prendas=getPrendas();
+  state.config.prendas.splice(idx,1);
+  saveState();renderConfigPrendas();
+}
+function addPrenda(){
+  if(!state.config.prendas)state.config.prendas=getPrendas();
+  state.config.prendas.push({tipo:'Nueva prenda',costoUSD:0,transporte:3.50,precioVentaCRC:0,esJuego:false,tallas:'S,M,L'});
+  saveState();renderConfigPrendas();showToast('Prenda agregada');
 }
 
-// ===================== VENTAS =====================
+// ── VENTAS ──
 function updateVentaUI(){
   const pais=document.getElementById('v-pais')?.value||'CR';
-  const iva=pais==='CR'?state.config.iva_cr:state.config.iva_ni;
-  document.getElementById('v-iva-label').textContent=`IVA ${iva}%`;
+  document.getElementById('v-iva-label').textContent=`IVA ${pais==='CR'?state.config.iva_cr:state.config.iva_ni}%`;
   calcVentaTotales();
 }
-
 function addVentaItem(){
   const lista=document.getElementById('v-items-lista');
   const idx=ventaItems.length;
   ventaItems.push({productoId:'',cantidad:1,precio:0});
   const opts=state.productos.map(p=>`<option value="${p.id}">${p.nombre}</option>`).join('');
   const div=document.createElement('div');
-  div.style.cssText='display:flex;gap:6px;margin-bottom:7px;align-items:center';
+  div.style.cssText='display:flex;gap:7px;margin-bottom:8px;align-items:center';
   div.id=`vi-${idx}`;
   div.innerHTML=`
-    <select class="form-select" style="flex:2" onchange="onVProd(${idx},this.value)">
-      <option value="">— Producto —</option>${opts}
+    <select class="form-select" style="flex:2" onchange="onVP(${idx},this.value)">
+      <option value="">— Seleccionar producto —</option>${opts}
     </select>
-    <input class="form-input" type="number" style="width:65px" value="1" min="1" placeholder="Cant" onchange="onVCant(${idx},this.value)">
-    <input class="form-input" type="number" style="width:95px" placeholder="Precio" id="vp-${idx}" onchange="onVPrecio(${idx},this.value)">
-    <button class="btn btn-ghost btn-sm" onclick="removeVI(${idx})">✕</button>`;
+    <input class="form-input" type="number" style="width:68px" value="1" min="1" placeholder="Cant" onchange="onVC(${idx},this.value)">
+    <input class="form-input" type="number" style="width:100px" placeholder="Precio" id="vp-${idx}" onchange="onVPr(${idx},this.value)">
+    <button class="btn btn-outline btn-sm" onclick="removeVI(${idx})" style="flex-shrink:0">✕</button>`;
   lista.appendChild(div);
 }
-
-function onVProd(idx,id){
+function onVP(idx,id){
   ventaItems[idx].productoId=id;
   const pais=document.getElementById('v-pais').value;
   const prod=state.productos.find(p=>p.id===id);
-  if(prod){ const precio=pais==='NI'?prod.precioNI:prod.precioCR; document.getElementById(`vp-${idx}`).value=precio; ventaItems[idx].precio=parseFloat(precio)||0; }
+  if(prod){const precio=pais==='NI'?prod.precioNI:prod.precioCR;document.getElementById(`vp-${idx}`).value=precio;ventaItems[idx].precio=parseFloat(precio)||0;}
   calcVentaTotales();
 }
-function onVCant(idx,v){ ventaItems[idx].cantidad=parseInt(v)||1; calcVentaTotales(); }
-function onVPrecio(idx,v){ ventaItems[idx].precio=parseFloat(v)||0; calcVentaTotales(); }
-function removeVI(idx){ document.getElementById(`vi-${idx}`)?.remove(); ventaItems[idx]=null; calcVentaTotales(); }
-
-function countUniformes(){
-  const items=ventaItems.filter(Boolean).filter(i=>i.productoId);
-  let count=0;
-  items.forEach(i=>{
-    const prod=state.productos.find(p=>p.id===i.productoId);
-    if(prod&&prod.categoria==='Uniforme Completo (3 piezas)') count+=i.cantidad;
-  });
-  return count;
-}
-
+function onVC(idx,v){ventaItems[idx].cantidad=parseInt(v)||1;calcVentaTotales();}
+function onVPr(idx,v){ventaItems[idx].precio=parseFloat(v)||0;calcVentaTotales();}
+function removeVI(idx){document.getElementById(`vi-${idx}`)?.remove();ventaItems[idx]=null;calcVentaTotales();}
+function countUnis(){return ventaItems.filter(Boolean).filter(i=>i.productoId&&state.productos.find(p=>p.id===i.productoId)?.categoria==='Uniforme Completo (3 piezas)').reduce((a,i)=>a+i.cantidad,0);}
 function calcVentaTotales(){
   const pais=document.getElementById('v-pais')?.value||'CR';
   const iva=pais==='CR'?state.config.iva_cr:state.config.iva_ni;
@@ -890,24 +1179,19 @@ function calcVentaTotales(){
   const items=ventaItems.filter(Boolean).filter(i=>i.precio>0);
   const subtotal=items.reduce((a,i)=>a+i.precio*i.cantidad,0);
   const ivaMonto=subtotal*iva/100;
-  const uniCount=countUniformes();
+  const uniCount=countUnis();
   const uniTaxLocal=uniCount*state.config.uni_tax*tc;
-  const total=subtotal+ivaMonto+uniTaxLocal;
-
   document.getElementById('v-subtotal').textContent=sym+fmt(subtotal);
   document.getElementById('v-iva-monto').textContent=sym+fmt(ivaMonto);
-  document.getElementById('v-total-final').textContent=sym+fmt(total);
-
-  const uniBox=document.getElementById('v-uni-box');
-  const uniRow=document.getElementById('v-uni-row');
+  document.getElementById('v-total-final').textContent=sym+fmt(subtotal+ivaMonto+uniTaxLocal);
+  const uniBox=document.getElementById('v-uni-box'),uniRow=document.getElementById('v-uni-row');
   if(uniCount>0){
-    uniBox.style.display='block'; uniRow.style.display='flex';
+    uniBox.style.display='block';uniRow.style.display='flex';
     document.getElementById('v-uni-count').textContent=uniCount;
     document.getElementById('v-uni-tax-display').textContent=sym+fmt(uniTaxLocal);
     document.getElementById('v-uni-subtotal').textContent=sym+fmt(uniTaxLocal);
-  } else { uniBox.style.display='none'; uniRow.style.display='none'; }
+  }else{uniBox.style.display='none';uniRow.style.display='none';}
 }
-
 function registrarVenta(){
   const items=ventaItems.filter(Boolean).filter(i=>i.productoId&&i.precio>0);
   if(!items.length){showToast('Agrega al menos un producto');return;}
@@ -916,38 +1200,39 @@ function registrarVenta(){
   const tc=pais==='CR'?state.config.tc_crc:state.config.tc_nio;
   const subtotal=items.reduce((a,i)=>a+i.precio*i.cantidad,0);
   const ivaMonto=subtotal*iva/100;
-  const uniCount=countUniformes();
+  const uniCount=countUnis();
   const uniTax=uniCount*state.config.uni_tax*tc;
-  const total=subtotal+ivaMonto+uniTax;
   const venta={
-    id:'V-'+Date.now(), fecha:new Date().toISOString(),
-    pais, pago:document.getElementById('v-pago').value,
+    id:'V-'+Date.now(),fecha:new Date().toISOString(),
+    pais,pago:document.getElementById('v-pago').value,
     cliente:document.getElementById('v-cliente').value,
-    items:items.map(i=>({...i,nombreProducto:state.productos.find(p=>p.id===i.productoId)?.nombre||'—',esUniforme:state.productos.find(p=>p.id===i.productoId)?.categoria==='Uniforme Completo (3 piezas)'})),
-    subtotal, iva:ivaMonto, uniCount, uniTax, total
+    items:items.map(i=>({...i,
+      nombreProducto:state.productos.find(p=>p.id===i.productoId)?.nombre||'—',
+      esUniforme:state.productos.find(p=>p.id===i.productoId)?.categoria==='Uniforme Completo (3 piezas)'
+    })),
+    subtotal,iva:ivaMonto,uniCount,uniTax,total:subtotal+ivaMonto+uniTax
   };
   items.forEach(i=>{
     const idx=state.productos.findIndex(p=>p.id===i.productoId);
-    if(idx!==-1) state.productos[idx].stock=Math.max(0,(parseInt(state.productos[idx].stock)||0)-i.cantidad);
+    if(idx!==-1)state.productos[idx].stock=Math.max(0,(parseInt(state.productos[idx].stock)||0)-i.cantidad);
   });
-  state.ventas.unshift(venta); saveState();
-  closeModal('modal-venta'); ventaItems=[];
+  state.ventas.unshift(venta);saveState();
+  closeModal('modal-venta');ventaItems=[];
   document.getElementById('v-items-lista').innerHTML='';
   document.getElementById('v-cliente').value='';
-  renderVentas(); showToast('Venta registrada ✓');
+  renderVentas();showToast('Venta registrada ✓');
 }
-
 function renderVentas(){
-  const now=new Date(), mes=now.getMonth(), yr=now.getFullYear();
+  const now=new Date(),mes=now.getMonth(),yr=now.getFullYear();
   const vm=state.ventas.filter(v=>{const d=new Date(v.fecha);return d.getMonth()===mes&&d.getFullYear()===yr;});
   document.getElementById('v-count-mes').textContent=vm.length;
   document.getElementById('v-total-mes').textContent='₡'+fmt(vm.reduce((a,v)=>a+v.total,0));
   document.getElementById('v-iva-mes').textContent='₡'+fmt(vm.reduce((a,v)=>a+v.iva,0));
   const lista=document.getElementById('lista-ventas');
-  if(!state.ventas.length){lista.innerHTML='<div style="text-align:center;padding:40px;color:var(--silver)">No hay ventas aún.</div>';return;}
+  if(!state.ventas.length){lista.innerHTML='<div style="text-align:center;padding:48px;color:var(--muted)">No hay ventas registradas aún.</div>';return;}
   lista.innerHTML=state.ventas.map(v=>`
     <div class="venta-card">
-      <div class="venta-header">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start">
         <div>
           <div class="venta-id">${v.id}</div>
           <div class="venta-date">${new Date(v.fecha).toLocaleString('es-CR')} · ${v.cliente||'Sin nombre'} · ${v.pago}</div>
@@ -955,70 +1240,67 @@ function renderVentas(){
         <span class="badge ${v.pais==='CR'?'badge-cr':'badge-ni'}">${v.pais==='CR'?'🇨🇷 CR':'🇳🇮 NI'}</span>
       </div>
       <div class="venta-items">
-        ${v.items.map(i=>`<div class="venta-item${i.esUniforme?' venta-item-uni':''}">
+        ${v.items.map(i=>`<div class="venta-item" style="${i.esUniforme?'background:rgba(201,168,76,.04);padding:4px 8px;border-radius:4px;margin:2px 0':''}">
           <span>${i.nombreProducto}${i.esUniforme?' ⚡':''} ×${i.cantidad}</span>
-          <span>${fmtMoney(i.precio*i.cantidad,v.pais)}</span>
+          <span>${fmtM(i.precio*i.cantidad,v.pais)}</span>
         </div>`).join('')}
       </div>
       <div class="venta-totals">
-        <div class="venta-total-row"><span style="color:var(--silver)">Subtotal</span><span>${fmtMoney(v.subtotal,v.pais)}</span></div>
-        <div class="venta-total-row"><span style="color:var(--silver)">IVA ${v.pais==='CR'?state.config.iva_cr:state.config.iva_ni}%</span><span>${fmtMoney(v.iva,v.pais)}</span></div>
-        ${v.uniCount>0?`<div class="venta-total-row"><span style="color:var(--volt)">⚡ Imp. uniformes (${v.uniCount} juego${v.uniCount>1?'s':''})</span><span style="color:var(--volt)">${fmtMoney(v.uniTax,v.pais)}</span></div>`:''}
-        <div class="venta-total-row grand"><span>TOTAL</span><span>${fmtMoney(v.total,v.pais)}</span></div>
+        <div class="venta-total-row"><span style="color:var(--muted)">Subtotal</span><span>${fmtM(v.subtotal,v.pais)}</span></div>
+        <div class="venta-total-row"><span style="color:var(--muted)">IVA ${v.pais==='CR'?state.config.iva_cr:state.config.iva_ni}%</span><span>${fmtM(v.iva,v.pais)}</span></div>
+        ${v.uniCount>0?`<div class="venta-total-row"><span style="color:var(--gold-lt)">⚡ Uniformes (${v.uniCount})</span><span style="color:var(--gold-lt)">${fmtM(v.uniTax,v.pais)}</span></div>`:''}
+        <div class="venta-total-row grand"><span>TOTAL</span><span>${fmtM(v.total,v.pais)}</span></div>
       </div>
     </div>`).join('');
 }
 
-// ===================== REPORTES =====================
+// ── REPORTES ──
 function renderReportes(){
-  const now=new Date(), mes=now.getMonth(), yr=now.getFullYear();
+  const now=new Date(),mes=now.getMonth(),yr=now.getFullYear();
   const vm=state.ventas.filter(v=>{const d=new Date(v.fecha);return d.getMonth()===mes&&d.getFullYear()===yr;});
   const totalV=vm.reduce((a,v)=>a+v.total,0);
   const totalIVA=vm.reduce((a,v)=>a+v.iva,0);
   const totalCosto=vm.flatMap(v=>v.items).reduce((a,i)=>{
     const prod=state.productos.find(p=>p.id===i.productoId);
-    const costo=parseFloat(prod?.costo)||0;
-    const tc=state.config.tc_crc;
-    let costoLocal=costo;
-    if(prod?.monedaCosto==='USD') costoLocal=costo*tc;
-    else if(prod?.monedaCosto==='PEN') costoLocal=costo*(tc/state.config.tc_pen);
-    return a+costoLocal*i.cantidad;
+    const costo=parseFloat(prod?.costo)||0,tc=state.config.tc_crc;
+    let cL=costo;
+    if(prod?.monedaCosto==='USD')cL=costo*tc;
+    else if(prod?.monedaCosto==='PEN')cL=costo*(tc/state.config.tc_pen);
+    return a+cL*i.cantidad;
   },0);
   document.getElementById('rep-ganancia').textContent='₡'+fmt(totalV-totalCosto-totalIVA);
   document.getElementById('rep-iva').textContent='₡'+fmt(totalIVA);
   const tbody=document.getElementById('tabla-reportes');
-  if(!vm.length){tbody.innerHTML='<tr><td colspan="10" style="text-align:center;padding:24px;color:var(--silver)">Sin movimientos este mes.</td></tr>';return;}
+  if(!vm.length){tbody.innerHTML='<tr><td colspan="10" style="text-align:center;padding:24px;color:var(--muted)">Sin movimientos este mes.</td></tr>';return;}
   tbody.innerHTML=vm.flatMap(v=>v.items.map(i=>`<tr>
-    <td style="color:var(--silver);font-size:12px">${new Date(v.fecha).toLocaleDateString('es-CR')}</td>
-    <td style="color:var(--volt)">${v.id}</td>
+    <td style="color:var(--muted);font-size:12px">${new Date(v.fecha).toLocaleDateString('es-CR')}</td>
+    <td style="color:var(--gold-lt);font-weight:600">${v.id}</td>
     <td>${i.nombreProducto}</td>
-    <td>${i.cantidad}</td>
-    <td>${fmtMoney(i.precio*i.cantidad,v.pais)}</td>
-    <td style="color:var(--volt)">${v.uniCount>0&&i.esUniforme?fmtMoney(v.uniTax/v.uniCount,v.pais):'—'}</td>
-    <td style="color:var(--silver)">${fmtMoney(v.iva/v.items.length,v.pais)}</td>
-    <td><strong>${fmtMoney(v.total/v.items.length,v.pais)}</strong></td>
+    <td style="text-align:center">${i.cantidad}</td>
+    <td>${fmtM(i.precio*i.cantidad,v.pais)}</td>
+    <td style="color:var(--gold-lt)">${v.uniCount>0&&i.esUniforme?fmtM(v.uniTax/v.uniCount,v.pais):'—'}</td>
+    <td style="color:var(--muted)">${fmtM(v.iva/v.items.length,v.pais)}</td>
+    <td><strong>${fmtM(v.total/v.items.length,v.pais)}</strong></td>
     <td><span class="badge ${v.pais==='CR'?'badge-cr':'badge-ni'}">${v.pais}</span></td>
-    <td style="color:var(--silver)">${v.pago}</td>
+    <td style="color:var(--muted)">${v.pago}</td>
   </tr>`)).join('');
 }
-
 function exportarCSV(){
   const rows=[['Fecha','ID','Producto','Cant','Subtotal','Imp.Uniforme','IVA','Total','País','Pago']];
   state.ventas.forEach(v=>v.items.forEach(i=>rows.push([
     new Date(v.fecha).toLocaleDateString('es-CR'),v.id,i.nombreProducto,i.cantidad,
-    (i.precio*i.cantidad).toFixed(0),
-    (v.uniCount>0&&i.esUniforme?(v.uniTax/v.uniCount).toFixed(0):'0'),
+    (i.precio*i.cantidad).toFixed(0),(v.uniCount>0&&i.esUniforme?(v.uniTax/v.uniCount).toFixed(0):'0'),
     (v.iva/v.items.length).toFixed(0),(v.total/v.items.length).toFixed(0),v.pais,v.pago
   ])));
   const a=document.createElement('a');
   a.href='data:text/csv;charset=utf-8,'+encodeURIComponent(rows.map(r=>r.join(',')).join('\n'));
-  a.download='sixsport-reporte.csv'; a.click(); showToast('CSV exportado');
+  a.download='sixsport-reporte.csv';a.click();showToast('CSV exportado');
 }
 
-// ===================== TOAST =====================
-function showToast(msg){ const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2500); }
+// ── TOAST ──
+function showToast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2800);}
 
-// ===================== INIT =====================
+// ── INIT ──
 loadState();
 renderDashboard();
 </script>
