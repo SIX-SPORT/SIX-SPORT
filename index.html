@@ -2173,6 +2173,7 @@
             <div id="modal-ped-content"></div>
             <div class="modal-footer">
                 <button class="btn btn-outline" onclick="closeModal('modal-pedido-detalle')">Cerrar</button>
+                <button class="btn btn-danger btn-sm" id="btn-eliminar-ped" onclick="eliminarPedido()" style="display:none">🗑 Eliminar pedido</button>
                 <button class="btn btn-danger btn-sm" id="btn-rechazar-ped" onclick="cambiarEstadoPedido('rechazado')">✕ Rechazar</button>
                 <button class="btn btn-success" id="btn-aprobar-ped" onclick="cambiarEstadoPedido('aprobado')">✓ Aprobar pedido</button>
             </div>
@@ -3890,10 +3891,11 @@
             return;
         }
         lista.innerHTML = pedidos.map(p => `
-    <div class="pedido-card" style="cursor:pointer" onclick="${currentUser.rol === 'admin' ? `verPedidoAdmin('${p.id}')` : ``}">
+    <div class="pedido-card">
       <div class="pedido-header">
         <div>
           <div class="pedido-id">${
+
 
         p.id}</div>
           <div class="pedido-meta">${new Date(p.fecha).toLocaleString('es-CR')} · ${p.academia} · ${p.metodoPago === 'sinpe' ? '📱 SINPE' : '🏦 Transferencia'}</div>
@@ -3920,8 +3922,38 @@
       ${
         p.comprobante ? `<div style="margin-top:10px"><img src="${p.comprobante}" style="max-height:120px;border-radius:6px;border:1px solid var(--steel);cursor:pointer" onclick="showImgFull('${p.comprobante}')"></div>` : ''}
       ${p.notas ? `<div style="margin-top:8px;font-size:12px;color:var(--muted)">📝 ${p.notas}</div>` : ''}
+      ${currentUser.rol === 'admin' ? `
+      <div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap">
+        ${
+        p.estado === 'pendiente' ? `
+          <button class="btn btn-success btn-sm" onclick="accionPedido('${p.id}','aprobado')">✓ Aprobar</button>
+          <button class="btn btn-danger btn-sm" onclick="accionPedido('${p.id}','rechazado')">✕ Rechazar</button>
+          <button class="btn btn-outline btn-sm" onclick="verPedidoAdmin('${p.id}')">👁 Ver detalle</button>
+        ` : `
+          <button class="btn btn-danger btn-sm" onclick="accionPedido('${p.id}','eliminar')">🗑 Eliminar</button>
+          <button class="btn btn-outline btn-sm" onclick="verPedidoAdmin('${p.id}')">👁 Ver detalle</button>
+        `}
+      </div>` : ''}
     </div>`
         ).join('');
+    }
+    function accionPedido(id, accion) {
+        if (accion === 'eliminar') {
+            if (!confirm('¿Eliminar este pedido?'))
+                return;
+            state.pedidos = state.pedidos.filter(p => p.id !== id);
+            saveState();
+            renderPedidos();
+            showToast('Pedido eliminado');
+            return;
+        }
+        const idx = state.pedidos.findIndex(p => p.id === id);
+        if (idx !== -1) {
+            state.pedidos[idx].estado = accion;
+            saveState();
+        }
+        renderPedidos();
+        showToast(accion === 'aprobado' ? 'Pedido aprobado ✓' : 'Pedido rechazado');
     }
     function verPedidoAdmin(id) {
         const p = state.pedidos.find(x => x.id === id);
@@ -3931,6 +3963,7 @@
         document.getElementById('modal-ped-title').textContent = 'Pedido ' + p.id;
         document.getElementById('btn-aprobar-ped').style.display = p.estado === 'pendiente' ? '' : 'none';
         document.getElementById('btn-rechazar-ped').style.display = p.estado === 'pendiente' ? '' : 'none';
+        document.getElementById('btn-eliminar-ped').style.display = p.estado !== 'pendiente' ? '' : 'none';
         document.getElementById('modal-ped-content').innerHTML = `
     <div style="display:flex;gap:10px;margin-bottom:14px;flex-wrap:wrap">
       <span class="badge badge-${
@@ -3953,15 +3986,13 @@
         ;
         openModal('modal-pedido-detalle');
     }
-    function cambiarEstadoPedido(nuevo) {
-        const idx = state.pedidos.findIndex(p => p.id === currentPedidoId);
-        if (idx !== -1) {
-            state.pedidos[idx].estado = nuevo;
-            saveState();
-        }
+    function eliminarPedido() {
+        accionPedido(currentPedidoId, 'eliminar');
         closeModal('modal-pedido-detalle');
-        renderPedidos();
-        showToast(`Pedido ${nuevo === 'aprobado' ? 'aprobado ✓' : 'rechazado'}`);
+    }
+    function cambiarEstadoPedido(nuevo) {
+        accionPedido(currentPedidoId, nuevo);
+        closeModal('modal-pedido-detalle');
     }
 
     // ══ VENTAS ══
