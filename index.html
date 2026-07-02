@@ -1266,6 +1266,9 @@
     };
 
     window.firebaseReady = true;
+    window.fbDb = db;
+    window.fbDoc = doc;
+    window.fbSetDoc = setDoc;
     document.dispatchEvent(new Event('firebase-ready'));
     console.log('✓ Firebase conectado');
     </script>
@@ -3885,11 +3888,29 @@
         const file = input.files[0];
         if (!file)
             return;
+        // Comprimir imagen antes de guardar
         const reader = new FileReader();
         reader.onload = e => {
-            const prev = document.getElementById('comprobante-preview');
-            prev.src = e.target.result;
-            prev.style.display = 'block';
+            const img = new Image();
+            img.onload = () => {
+                const canvas = document.createElement('canvas');
+                // Máximo 800px de ancho manteniendo proporción
+                const maxW = 800;
+                const ratio = Math.min(maxW / img.width, maxW / img.height, 1);
+                canvas.width = img.width * ratio;
+                canvas.height = img.height * ratio;
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                // Comprimir a JPEG calidad 60%
+                const compressed = canvas.toDataURL('image/jpeg', 0.6);
+                const prev = document.getElementById('comprobante-preview');
+                prev.src = compressed;
+                prev.style.display = 'block';
+                // Mostrar tamaño
+                const kb = Math.round(compressed.length * 0.75 / 1024);
+                showToast(`Comprobante listo (${kb}KB) ✓`);
+            };
+            img.src = e.target.result;
         };
         reader.readAsDataURL(file);
     }
@@ -3907,13 +3928,13 @@
         const subtotal = carrito.reduce((a, i) => a + i.precio * i.cantidad, 0);
         const ivaMonto = subtotal * iva / 100;
         const total = subtotal + ivaMonto;
-        const comprobante = document.getElementById('comprobante-preview').src || null;
+        const comprobanteData = document.getElementById('comprobante-preview').src || null;
+        const comprobanteImg = comprobanteData && comprobanteData.startsWith('data') ? comprobanteData : null;
         const pedido = {
             id: 'P-' + Date.now(),
             fecha: new Date().toISOString(),
             userId: currentUser.id,
             userEmail: currentUser.email,
-            // Para identificar cross-device
             academia: currentUser.academia || currentUser.nombre,
             items: [...carrito],
             pais,
@@ -3921,7 +3942,8 @@
             subtotal,
             iva: ivaMonto,
             total,
-            comprobante: comprobante && comprobante.startsWith('data') ? comprobante : null,
+            comprobante: null,
+            // Se guarda por separado en Firebase
             notas: document.getElementById('ped-notas').value,
             estado: 'pendiente'
         };
@@ -3933,6 +3955,23 @@
                 state.productos[idx].stock = Math.max(0, (parseInt(state.productos[idx].stock) || 0) - item.cantidad);
         });
         saveState();
+        // Guardar comprobante por separado en Firebase si existe
+        if (comprobanteImg && window.fbDb) {
+            try {
+                window.fbSetDoc(window.fbDoc(window.fbDb, 'comprobantes', pedido.id), {
+                    img: comprobanteImg,
+                    pedidoId: pedido.id,
+                    fecha: pedido.fecha
+                });
+                // Actualizar pedido con referencia al comprobante
+                state.pedidos[0].comprobante = pedido.id; // ID para buscar después
+                localStorage.setItem('sixsport_v6', JSON.stringify(state));
+            } catch (e) {
+                // Si falla, guardar inline (fallback)
+                state.pedidos[0].comprobante = comprobanteImg;
+                localStorage.setItem('sixsport_v6', JSON.stringify(state));
+            }
+        }
         carrito = [];
         document.getElementById('comprobante-preview').src = '';
         document.getElementById('comprobante-preview').style.display = 'none';
