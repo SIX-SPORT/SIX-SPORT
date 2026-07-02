@@ -2425,10 +2425,9 @@
                             rol: 'admin',
                             academia: 'SIX-SPORT'
                         };
-                        if (fbData.productos.length > 0)
-                            state.productos = fbData.productos;
-                        if (fbData.pedidos.length > 0)
-                            state.pedidos = fbData.pedidos;
+                        // SIEMPRE sincronizar productos y pedidos — aunque estén vacíos
+                        state.productos = fbData.productos || [];
+                        state.pedidos = fbData.pedidos || [];
                         if (fbData.usuarios && fbData.usuarios.length > 0) {
                             const fbUsuarios = fbData.usuarios.filter(u => u.id !== 'admin1');
                             state.usuarios = [CEO, ...fbUsuarios];
@@ -2587,10 +2586,9 @@
                         rol: 'admin',
                         academia: 'SIX-SPORT'
                     };
-                    if (fbData.productos.length > 0)
-                        state.productos = fbData.productos;
-                    if (fbData.pedidos.length > 0)
-                        state.pedidos = fbData.pedidos;
+                    // SIEMPRE sincronizar desde Firebase — aunque estén vacíos
+                    state.productos = fbData.productos || [];
+                    state.pedidos = fbData.pedidos || [];
                     if (fbData.usuarios && fbData.usuarios.length > 0) {
                         const fbUsuarios = fbData.usuarios.filter(u => u.id !== 'admin1');
                         state.usuarios = [CEO, ...fbUsuarios];
