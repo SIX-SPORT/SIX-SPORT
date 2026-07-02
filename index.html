@@ -1188,6 +1188,75 @@
 </head>
 <body>
 
+    <!-- FIREBASE SDK -->
+    <script type="module">
+    import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
+    import { getFirestore, doc, setDoc, getDoc, onSnapshot } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
+
+    const firebaseConfig = {
+        apiKey: "AIzaSyD0Uuqozyw5W0wcfHjpj26icVCswiPHNkY",
+        authDomain: "sixsport-b1d1c.firebaseapp.com",
+        projectId: "sixsport-b1d1c",
+        storageBucket: "sixsport-b1d1c.firebasestorage.app",
+        messagingSenderId: "149955606517",
+        appId: "1:149955606517:web:24147b18a12593b6ce52bc"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+    const STATE_REF = doc(db, 'sixsport', 'state');
+
+    window.saveToFirebase = async function(data) {
+        try {
+            await setDoc(STATE_REF, {
+                productos: JSON.stringify(data.productos || []),
+                pedidos: JSON.stringify(data.pedidos || []),
+                usuarios: JSON.stringify(data.usuarios || []),
+                config: JSON.stringify(data.config || {}),
+                updatedAt: new Date().toISOString()
+            });
+        } catch (e) {
+            console.error('Firebase save:', e);
+        }
+    };
+
+    window.loadFromFirebase = async function() {
+        try {
+            const snap = await getDoc(STATE_REF);
+            if (snap.exists()) {
+                const d = snap.data();
+                return {
+                    productos: JSON.parse(d.productos || '[]'),
+                    pedidos: JSON.parse(d.pedidos || '[]'),
+                    usuarios: JSON.parse(d.usuarios || '[]'),
+                    config: JSON.parse(d.config || '{}')
+                };
+            }
+        } catch (e) {
+            console.error('Firebase load:', e);
+        }
+        return null;
+    };
+
+    window.listenFirebase = function(callback) {
+        return onSnapshot(STATE_REF, (snap) => {
+            if (snap.exists()) {
+                const d = snap.data();
+                callback({
+                    productos: JSON.parse(d.productos || '[]'),
+                    pedidos: JSON.parse(d.pedidos || '[]'),
+                    usuarios: JSON.parse(d.usuarios || '[]'),
+                    config: JSON.parse(d.config || '{}')
+                });
+            }
+        });
+    };
+
+    window.firebaseReady = true;
+    document.dispatchEvent(new Event('firebase-ready'));
+    console.log('✓ Firebase conectado');
+    </script>
+
     <!-- ══ LOGIN ══ -->
     <div class="login-screen" id="login-screen">
         <div class="login-box">
@@ -2244,13 +2313,67 @@
             });
             saveState();
         }
-        // SIEMPRE mostrar login al cargar — nunca auto-login
+        // SIEMPRE mostrar login al cargar
         document.getElementById('login-screen').style.display = 'flex';
         document.getElementById('app-layout').classList.remove('visible');
         syncConfigUI();
+
+        // Cargar desde Firebase cuando esté listo
+        function initFirebase() {
+            if (window.loadFromFirebase) {
+                window.loadFromFirebase().then(fbData => {
+                    if (fbData && (fbData.productos.length > 0 || fbData.pedidos.length > 0)) {
+                        // Fusionar — Firebase tiene prioridad para productos y pedidos
+                        state.productos = fbData.productos.length > 0 ? fbData.productos : state.productos;
+                        state.pedidos = fbData.pedidos.length > 0 ? fbData.pedidos : state.pedidos;
+                        // Para usuarios y config, preservar locales si Firebase no tiene admin
+                        if (fbData.usuarios.length > 0) {
+                            const fbAdmin = fbData.usuarios.find(u => u.id === 'admin1');
+                            state.usuarios = fbAdmin ? fbData.usuarios : state.usuarios;
+                        }
+                        if (fbData.config && Object.keys(fbData.config).length > 0)
+                            state.config = {
+                                ...state.config,
+                                ...fbData.config
+                            };
+                        localStorage.setItem('sixsport_v6', JSON.stringify(state));
+                    }
+                    // Escuchar cambios en tiempo real
+                    window.listenFirebase(fbData => {
+                        if (!currentUser)
+                            return; // No actualizar si no está logueado
+                        const wasInPage = document.querySelector('.page.active')?.id;
+                        state.productos = fbData.productos.length > 0 ? fbData.productos : state.productos;
+                        state.pedidos = fbData.pedidos.length > 0 ? fbData.pedidos : state.pedidos;
+                        if (fbData.config && Object.keys(fbData.config).length > 0)
+                            state.config = {
+                                ...state.config,
+                                ...fbData.config
+                            };
+                        localStorage.setItem('sixsport_v6', JSON.stringify(state));
+                        // Refrescar la página activa
+                        if (wasInPage)
+                            showPage(wasInPage.replace('page-', ''), document.querySelector('.nav-item.active,.mobile-nav-item.active'));
+                        showToast('🔄 Datos actualizados');
+                    });
+                }).catch(e => console.error('Firebase init error:', e));
+            }
+        }
+
+        if (window.firebaseReady) {
+            initFirebase();
+        } else {
+            document.addEventListener('firebase-ready', initFirebase, {
+                once: true
+            });
+            setTimeout(initFirebase, 3000); // Fallback si el evento no llega
+        }
     }
     function saveState() {
         localStorage.setItem('sixsport_v6', JSON.stringify(state));
+        // También guardar en Firebase si está disponible
+        if (window.saveToFirebase)
+            window.saveToFirebase(state);
     }
     function syncConfigUI() {
         ['tc-crc', 'tc-nio', 'tc-pen', 'iva-cr', 'iva-ni', 'uni-tax'].forEach(id => {
