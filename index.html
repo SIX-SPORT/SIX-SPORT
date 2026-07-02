@@ -1208,10 +1208,10 @@
 
     window.saveToFirebase = async function(data) {
         try {
+            // Usuarios NO se guardan en Firebase — son privados y locales
             await setDoc(STATE_REF, {
                 productos: JSON.stringify(data.productos || []),
                 pedidos: JSON.stringify(data.pedidos || []),
-                usuarios: JSON.stringify(data.usuarios || []),
                 config: JSON.stringify(data.config || {}),
                 updatedAt: new Date().toISOString()
             });
@@ -2317,7 +2317,32 @@
             });
             saveState();
         }
-        // SIEMPRE mostrar login al cargar
+        // Intentar restaurar sesión previa
+        const savedSession = sessionStorage.getItem('sixsport_session');
+        if (savedSession) {
+            try {
+                const sess = JSON.parse(savedSession);
+                const user = state.usuarios.find(u => u.id === sess.id && u.email === sess.email);
+                if (user) {
+                    currentUser = user;
+                    document.getElementById('nav-username').textContent = user.nombre;
+                    document.getElementById('nav-role').textContent = user.rol === 'admin' ? 'Admin' : 'Academia';
+                    document.getElementById('mobile-username').textContent = user.nombre.split('—')[0].trim();
+                    document.getElementById('mobile-role').textContent = user.rol === 'admin' ? 'Admin' : 'Academia';
+                    document.getElementById('mobile-role').className = 'badge ' + (user.rol === 'admin' ? 'badge-admin' : 'badge-academia');
+                    document.querySelectorAll('.admin-only').forEach(el => el.style.display = user.rol === 'admin' ? '' : 'none');
+                    document.getElementById('nav-catalogo-label').textContent = user.rol === 'admin' ? 'Catálogo' : 'Hacer Pedido';
+                    document.getElementById('nav-pedidos-label').textContent = user.rol === 'admin' ? 'Todos los Pedidos' : 'Mis Pedidos';
+                    document.getElementById('pedidos-page-title').innerHTML = user.rol === 'admin' ? 'Todos los <span class="gold">Pedidos</span>' : 'Mis <span class="gold">Pedidos</span>';
+                    document.getElementById('login-screen').style.display = 'none';
+                    document.getElementById('app-layout').classList.add('visible');
+                    syncConfigUI();
+                    renderDashboard();
+                    return; // Sesión restaurada, no mostrar login
+                }
+            } catch (e) {}
+        }
+        // Sin sesión — mostrar login
         document.getElementById('login-screen').style.display = 'flex';
         document.getElementById('app-layout').classList.remove('visible');
         syncConfigUI();
@@ -2345,17 +2370,20 @@
                     // Escuchar cambios en tiempo real
                     window.listenFirebase(fbData => {
                         if (!currentUser)
-                            return; // No actualizar si no está logueado
+                            return;
                         const wasInPage = document.querySelector('.page.active')?.id;
-                        state.productos = fbData.productos.length > 0 ? fbData.productos : state.productos;
-                        state.pedidos = fbData.pedidos.length > 0 ? fbData.pedidos : state.pedidos;
+                        // Sincronizar productos y pedidos desde Firebase
+                        // NUNCA sobreescribir usuarios desde Firebase — son locales por seguridad
+                        if (fbData.productos.length > 0)
+                            state.productos = fbData.productos;
+                        if (fbData.pedidos.length > 0)
+                            state.pedidos = fbData.pedidos;
                         if (fbData.config && Object.keys(fbData.config).length > 0)
                             state.config = {
                                 ...state.config,
                                 ...fbData.config
                             };
                         localStorage.setItem('sixsport_v6', JSON.stringify(state));
-                        // Refrescar la página activa
                         if (wasInPage)
                             showPage(wasInPage.replace('page-', ''), document.querySelector('.nav-item.active,.mobile-nav-item.active'));
                         showToast('🔄 Datos actualizados');
@@ -2427,7 +2455,28 @@
     function doLogin() {
         const email = document.getElementById('login-user').value.trim().toLowerCase();
         const pass = document.getElementById('login-pass').value;
-        const user = state.usuarios.find(u => u.email.toLowerCase() === email && u.pass === pass);
+        // SIEMPRE verificar CEO primero — credenciales hardcodeadas como respaldo
+        const CEO = {
+            id: 'admin1',
+            nombre: 'Oscar Zuca — CEO',
+            email: 'oscar-zuca@hotmail.com',
+            pass: 'Saprissa2026!',
+            rol: 'admin',
+            academia: 'SIX-SPORT'
+        };
+        let user = null;
+        if (email === CEO.email.toLowerCase() && pass === CEO.pass) {
+            user = CEO;
+            // Asegurar que está en state.usuarios
+            const idx = state.usuarios.findIndex(u => u.id === 'admin1');
+            if (idx === -1)
+                state.usuarios.unshift(CEO);
+            else
+                state.usuarios[idx] = CEO;
+            saveState();
+        } else {
+            user = state.usuarios.find(u => u.email.toLowerCase() === email && u.pass === pass);
+        }
         if (!user) {
             document.getElementById('login-error').style.display = 'block';
             return;
@@ -2448,11 +2497,17 @@
         document.getElementById('pedidos-page-title').innerHTML = user.rol === 'admin' ? 'Todos los <span class="gold">Pedidos</span>' : 'Mis <span class="gold">Pedidos</span>';
         document.getElementById('login-screen').style.display = 'none';
         document.getElementById('app-layout').classList.add('visible');
+        // Guardar sesión para que no se cierre al refrescar
+        sessionStorage.setItem('sixsport_session', JSON.stringify({
+            id: user.id,
+            email: user.email
+        }));
         renderDashboard();
     }
     function doLogout() {
         currentUser = null;
         carrito = [];
+        sessionStorage.removeItem('sixsport_session');
         document.getElementById('login-screen').style.display = 'flex';
         document.getElementById('app-layout').classList.remove('visible');
         document.getElementById('login-user').value = '';
