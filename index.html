@@ -2349,9 +2349,42 @@
                     document.getElementById('pedidos-page-title').innerHTML = user.rol === 'admin' ? 'Todos los <span class="gold">Pedidos</span>' : 'Mis <span class="gold">Pedidos</span>';
                     document.getElementById('login-screen').style.display = 'none';
                     document.getElementById('app-layout').classList.add('visible');
-                    syncConfigUI();
-                    renderDashboard();
-                    return; // Sesión restaurada, no mostrar login
+                    // Sincronizar config desde Firebase al restaurar sesión
+                    if (window.loadFromFirebase) {
+                        window.loadFromFirebase().then(fbData => {
+                            if (fbData) {
+                                const CEO = {
+                                    id: 'admin1',
+                                    nombre: 'Oscar Zuca — CEO',
+                                    email: 'oscar-zuca@hotmail.com',
+                                    pass: 'Saprissa2026!',
+                                    rol: 'admin',
+                                    academia: 'SIX-SPORT'
+                                };
+                                if (fbData.productos.length > 0)
+                                    state.productos = fbData.productos;
+                                if (fbData.pedidos.length > 0)
+                                    state.pedidos = fbData.pedidos;
+                                if (fbData.usuarios && fbData.usuarios.length > 0) {
+                                    const fbUsuarios = fbData.usuarios.filter(u => u.id !== 'admin1');
+                                    state.usuarios = [CEO, ...fbUsuarios];
+                                }
+                                if (fbData.config && Object.keys(fbData.config).length > 0) {
+                                    state.config = {
+                                        ...state.config,
+                                        ...fbData.config
+                                    };
+                                    syncConfigUI();
+                                }
+                                localStorage.setItem('sixsport_v6', JSON.stringify(state));
+                            }
+                            renderDashboard();
+                        }).catch(() => renderDashboard());
+                    } else {
+                        syncConfigUI();
+                        renderDashboard();
+                    }
+                    return; // Sesión restaurada
                 }
             } catch (e) {}
         }
@@ -2382,23 +2415,20 @@
                     }
                     // Escuchar cambios en tiempo real
                     window.listenFirebase(fbData => {
-                        if (!currentUser)
-                            return;
-                        const wasInPage = document.querySelector('.page.active')?.id;
+                        // Actualizar siempre, incluso si no hay sesión activa
+                        const CEO = {
+                            id: 'admin1',
+                            nombre: 'Oscar Zuca — CEO',
+                            email: 'oscar-zuca@hotmail.com',
+                            pass: 'Saprissa2026!',
+                            rol: 'admin',
+                            academia: 'SIX-SPORT'
+                        };
                         if (fbData.productos.length > 0)
                             state.productos = fbData.productos;
                         if (fbData.pedidos.length > 0)
                             state.pedidos = fbData.pedidos;
-                        // Sincronizar usuarios desde Firebase, pero SIEMPRE proteger CEO
                         if (fbData.usuarios && fbData.usuarios.length > 0) {
-                            const CEO = {
-                                id: 'admin1',
-                                nombre: 'Oscar Zuca — CEO',
-                                email: 'oscar-zuca@hotmail.com',
-                                pass: 'Saprissa2026!',
-                                rol: 'admin',
-                                academia: 'SIX-SPORT'
-                            };
                             const fbUsuarios = fbData.usuarios.filter(u => u.id !== 'admin1');
                             state.usuarios = [CEO, ...fbUsuarios];
                         }
@@ -2408,9 +2438,26 @@
                                 ...fbData.config
                             };
                         localStorage.setItem('sixsport_v6', JSON.stringify(state));
-                        if (wasInPage)
-                            showPage(wasInPage.replace('page-', ''), document.querySelector('.nav-item.active,.mobile-nav-item.active'));
-                        showToast('🔄 Datos actualizados');
+                        // Solo refrescar UI si hay sesión activa
+                        if (!currentUser)
+                            return;
+                        const activePage = document.querySelector('.page.active')?.id;
+                        if (activePage === 'page-dashboard')
+                            renderDashboard();
+                        else if (activePage === 'page-mispedidos')
+                            renderPedidos();
+                        else if (activePage === 'page-inventario')
+                            renderInventario();
+                        else if (activePage === 'page-ventas')
+                            renderVentas();
+                        // Notificar al CEO si hay nuevo pedido pendiente
+                        const pendientes = state.pedidos.filter(p => p.estado === 'pendiente').length;
+                        if (pendientes > 0 && currentUser.rol === 'admin') {
+                            document.title = '(' + pendientes + ') SIX·SPORT — Pedido pendiente';
+                        } else {
+                            document.title = 'SIX·SPORT';
+                        }
+                        showToast('🔄 Datos actualizados en tiempo real');
                     });
                 }).catch(e => console.error('Firebase init error:', e));
             }
@@ -2526,7 +2573,43 @@
             id: user.id,
             email: user.email
         }));
-        renderDashboard();
+        // Cargar datos más recientes de Firebase al hacer login
+        if (window.loadFromFirebase) {
+            showToast('⏳ Sincronizando datos...');
+            window.loadFromFirebase().then(fbData => {
+                if (fbData) {
+                    const CEO = {
+                        id: 'admin1',
+                        nombre: 'Oscar Zuca — CEO',
+                        email: 'oscar-zuca@hotmail.com',
+                        pass: 'Saprissa2026!',
+                        rol: 'admin',
+                        academia: 'SIX-SPORT'
+                    };
+                    if (fbData.productos.length > 0)
+                        state.productos = fbData.productos;
+                    if (fbData.pedidos.length > 0)
+                        state.pedidos = fbData.pedidos;
+                    if (fbData.usuarios && fbData.usuarios.length > 0) {
+                        const fbUsuarios = fbData.usuarios.filter(u => u.id !== 'admin1');
+                        state.usuarios = [CEO, ...fbUsuarios];
+                    }
+                    // Config siempre desde Firebase — tiene SINPE, transferencia, etc.
+                    if (fbData.config && Object.keys(fbData.config).length > 0) {
+                        state.config = {
+                            ...state.config,
+                            ...fbData.config
+                        };
+                    }
+                    localStorage.setItem('sixsport_v6', JSON.stringify(state));
+                    syncConfigUI();
+                }
+                showToast('✓ Datos sincronizados');
+                renderDashboard();
+            }).catch(() => renderDashboard());
+        } else {
+            renderDashboard();
+        }
     }
     function doLogout() {
         currentUser = null;
