@@ -3929,6 +3929,8 @@
             notas: document.getElementById('ped-notas').value,
             estado: 'pendiente'
         };
+        // Guardar comprobante inline (ya comprimido a ~80KB)
+        pedido.comprobante = comprobanteImg || null;
         state.pedidos.unshift(pedido);
         // Descontar stock
         carrito.forEach(item => {
@@ -3937,23 +3939,6 @@
                 state.productos[idx].stock = Math.max(0, (parseInt(state.productos[idx].stock) || 0) - item.cantidad);
         });
         saveState();
-        // Guardar comprobante por separado en Firebase si existe
-        if (comprobanteImg && window.fbDb) {
-            try {
-                window.fbSetDoc(window.fbDoc(window.fbDb, 'comprobantes', pedido.id), {
-                    img: comprobanteImg,
-                    pedidoId: pedido.id,
-                    fecha: pedido.fecha
-                });
-                // Actualizar pedido con referencia al comprobante
-                state.pedidos[0].comprobante = pedido.id; // ID para buscar después
-                localStorage.setItem('sixsport_v6', JSON.stringify(state));
-            } catch (e) {
-                // Si falla, guardar inline (fallback)
-                state.pedidos[0].comprobante = comprobanteImg;
-                localStorage.setItem('sixsport_v6', JSON.stringify(state));
-            }
-        }
         carrito = [];
         document.getElementById('comprobante-preview').src = '';
         document.getElementById('comprobante-preview').style.display = 'none';
@@ -4005,29 +3990,41 @@
       ${
         p.comprobante ? `<div style="margin-top:10px"><img src="${p.comprobante}" style="max-height:120px;border-radius:6px;border:1px solid var(--steel);cursor:pointer" onclick="showImgFull('${p.comprobante}')"></div>` : ''}
       ${p.notas ? `<div style="margin-top:8px;font-size:12px;color:var(--muted)">📝 ${p.notas}</div>` : ''}
-      ${currentUser.rol === 'admin' ? `
       <div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap">
         ${
-        p.estado === 'pendiente' ? `
+        currentUser.rol === 'admin' && p.estado === 'pendiente' ? `
           <button class="btn btn-success btn-sm" onclick="accionPedido('${p.id}','aprobado')">✓ Aprobar</button>
           <button class="btn btn-danger btn-sm" onclick="accionPedido('${p.id}','rechazado')">✕ Rechazar</button>
-          <button class="btn btn-outline btn-sm" onclick="verPedidoAdmin('${p.id}')">👁 Ver detalle</button>
-        ` : `
+        ` : ''}
+        ${currentUser.rol === 'admin' && p.estado !== 'pendiente' ? `
           <button class="btn btn-danger btn-sm" onclick="accionPedido('${p.id}','eliminar')">🗑 Eliminar</button>
-          <button class="btn btn-outline btn-sm" onclick="verPedidoAdmin('${p.id}')">👁 Ver detalle</button>
-        `}
-      </div>` : ''}
+        ` : ''}
+        ${(p.userId === currentUser.id || p.userEmail === currentUser.email) && p.estado === 'pendiente' ? `
+          <button class="btn btn-danger btn-sm" onclick="accionPedido('${p.id}','cancelar')">✕ Cancelar mi pedido</button>
+        ` : ''}
+        <button class="btn btn-outline btn-sm" onclick="verPedidoAdmin('${p.id}')">👁 Ver detalle</button>
+      </div>
     </div>`
+
         ).join('');
     }
     function accionPedido(id, accion) {
         if (accion === 'eliminar') {
-            if (!confirm('¿Eliminar este pedido?'))
+            if (!confirm('¿Eliminar este pedido? No se puede deshacer.'))
                 return;
             state.pedidos = state.pedidos.filter(p => p.id !== id);
             saveState();
             renderPedidos();
             showToast('Pedido eliminado');
+            return;
+        }
+        if (accion === 'cancelar') {
+            if (!confirm('¿Cancelar tu pedido? No se puede deshacer.'))
+                return;
+            state.pedidos = state.pedidos.filter(p => p.id !== id);
+            saveState();
+            renderPedidos();
+            showToast('Pedido cancelado');
             return;
         }
         const idx = state.pedidos.findIndex(p => p.id === id);
