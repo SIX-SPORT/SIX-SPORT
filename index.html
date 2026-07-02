@@ -1208,10 +1208,11 @@
 
     window.saveToFirebase = async function(data) {
         try {
-            // Usuarios NO se guardan en Firebase — son privados y locales
+            // Guardar todo en Firebase incluyendo usuarios
             await setDoc(STATE_REF, {
                 productos: JSON.stringify(data.productos || []),
                 pedidos: JSON.stringify(data.pedidos || []),
+                usuarios: JSON.stringify(data.usuarios || []),
                 config: JSON.stringify(data.config || {}),
                 updatedAt: new Date().toISOString()
             });
@@ -1225,10 +1226,22 @@
             const snap = await getDoc(STATE_REF);
             if (snap.exists()) {
                 const d = snap.data();
+                const CEO = {
+                    id: 'admin1',
+                    nombre: 'Oscar Zuca — CEO',
+                    email: 'oscar-zuca@hotmail.com',
+                    pass: 'Saprissa2026!',
+                    rol: 'admin',
+                    academia: 'SIX-SPORT'
+                };
+                let usuarios = JSON.parse(d.usuarios || '[]');
+                // Siempre garantizar que CEO existe y tiene credenciales correctas
+                usuarios = usuarios.filter(u => u.id !== 'admin1');
+                usuarios = [CEO, ...usuarios];
                 return {
                     productos: JSON.parse(d.productos || '[]'),
                     pedidos: JSON.parse(d.pedidos || '[]'),
-                    usuarios: JSON.parse(d.usuarios || '[]'),
+                    usuarios: usuarios,
                     config: JSON.parse(d.config || '{}')
                 };
             }
@@ -2206,7 +2219,7 @@
 
             <div class="modal-footer">
                 <button class="btn btn-outline" onclick="closeModal('modal-usuario');resetUserForm()">Cancelar</button>
-                <button class="btn btn-gold" onclick="guardarUsuario()">Guardar y generar invitación</button>
+                <button class="btn btn-gold" id="btn-guardar-usuario" onclick="guardarUsuarioUnaVez()">Guardar y generar invitación</button>
             </div>
         </div>
     </div>
@@ -2372,12 +2385,23 @@
                         if (!currentUser)
                             return;
                         const wasInPage = document.querySelector('.page.active')?.id;
-                        // Sincronizar productos y pedidos desde Firebase
-                        // NUNCA sobreescribir usuarios desde Firebase — son locales por seguridad
                         if (fbData.productos.length > 0)
                             state.productos = fbData.productos;
                         if (fbData.pedidos.length > 0)
                             state.pedidos = fbData.pedidos;
+                        // Sincronizar usuarios desde Firebase, pero SIEMPRE proteger CEO
+                        if (fbData.usuarios && fbData.usuarios.length > 0) {
+                            const CEO = {
+                                id: 'admin1',
+                                nombre: 'Oscar Zuca — CEO',
+                                email: 'oscar-zuca@hotmail.com',
+                                pass: 'Saprissa2026!',
+                                rol: 'admin',
+                                academia: 'SIX-SPORT'
+                            };
+                            const fbUsuarios = fbData.usuarios.filter(u => u.id !== 'admin1');
+                            state.usuarios = [CEO, ...fbUsuarios];
+                        }
                         if (fbData.config && Object.keys(fbData.config).length > 0)
                             state.config = {
                                 ...state.config,
@@ -3962,19 +3986,47 @@
         });
         document.getElementById('u-rol').value = 'academia';
         document.getElementById('modal-user-title').textContent = 'Nuevo Usuario';
+        guardandoUsuario = false;
         document.getElementById('invite-section').style.display = 'none';
         document.getElementById('invite-message').style.display = 'none';
     }
+    let guardandoUsuario = false;
+    function guardarUsuarioUnaVez() {
+        if (guardandoUsuario)
+            return;
+        guardandoUsuario = true;
+        const btn = document.getElementById('btn-guardar-usuario');
+        if (btn) {
+            btn.disabled = true;
+            btn.textContent = 'Guardando...';
+        }
+        guardarUsuario();
+        // Re-habilitar solo si es edición (modal se cierra) o si hay error
+        setTimeout(() => {
+            guardandoUsuario = false;
+            if (btn && !editingUserId) {
+                btn.disabled = true;
+                btn.textContent = '✓ Guardado';
+            }
+        }, 500);
+    }
     function guardarUsuario() {
         const nombre = document.getElementById('u-nombre').value.trim();
-        const email = document.getElementById('u-email').value.trim();
+        const email = document.getElementById('u-email').value.trim().toLowerCase();
         if (!nombre || !email) {
             showToast('Completá nombre y email', true);
             return;
         }
+        // Verificar que el email no exista ya
+        if (!editingUserId) {
+            const existe = state.usuarios.find(u => u.email.toLowerCase() === email);
+            if (existe) {
+                showToast('Ya existe un usuario con ese email', true);
+                return;
+            }
+        }
         let pass = document.getElementById('u-pass').value;
         if (!pass && !editingUserId) {
-            // Auto-generate temp password
             pass = 'SIX' + Math.random().toString(36).substring(2, 6).toUpperCase() + '!';
         }
         if (!pass)
@@ -3991,17 +4043,16 @@
             const i = state.usuarios.findIndex(u => u.id === editingUserId);
             if (i !== -1)
                 state.usuarios[i] = user;
-        }
-        else
-            state.usuarios.push(user);
-        saveState();
-        if (!editingUserId) {
-            generarInvitacion(user, pass);
-            showToast('Usuario creado ✓ — copiá la invitación');
-        } else {
+            saveState();
             closeModal('modal-usuario');
             resetUserForm();
             showToast('Usuario actualizado ✓');
+        } else {
+            state.usuarios.push(user);
+            saveState();
+            // Mostrar invitación sin cerrar el modal para que pueda copiarla
+            generarInvitacion(user, pass);
+            showToast('Usuario creado ✓ — copiá la invitación y cerrá');
         }
         renderUsuarios();
     }
