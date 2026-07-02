@@ -2160,7 +2160,8 @@
             </div>
 
             <div class="modal-footer">
-                <button class="btn btn-outline" onclick="closeModal('modal-carrito')">Cancelar</button>
+                <button class="btn btn-outline" onclick="closeModal('modal-carrito')">Cerrar</button>
+                <button class="btn btn-danger btn-sm" onclick="vaciarCarrito()">🗑 Vaciar pedido</button>
                 <button class="btn btn-gold" id="btn-confirmar-pedido" onclick="confirmarPedido()" style="display:none">Confirmar Pedido</button>
             </div>
         </div>
@@ -3423,7 +3424,7 @@
         // Mis pedidos recientes (para academias)
         const recEl = document.getElementById('dash-mis-pedidos-recientes');
         if (currentUser && currentUser.rol === 'academia') {
-            const misPed = state.pedidos.filter(p => p.userId === currentUser.id).slice(0, 3);
+            const misPed = state.pedidos.filter(p => p.userId === currentUser.id || p.userEmail === currentUser.email).slice(0, 3);
             if (misPed.length > 0) {
                 recEl.innerHTML = `<div style="font-family:'Archivo Expanded',sans-serif;font-size:15px;color:var(--gold-lt);margin-bottom:10px">Mis pedidos recientes</div>` +
                 misPed.map(p => `<div class="pedido-card">
@@ -3650,6 +3651,7 @@
 
     // ══ CATÁLOGO ══
     function renderCatalogo() {
+        tallasSeleccionadas = {};
         const grid = document.getElementById('catalogo-grid');
         document.getElementById('btn-ver-carrito').style.display = carrito.length > 0 ? '' : 'none';
         document.getElementById('carrito-count').textContent = carrito.reduce((a, i) => a + i.cantidad, 0);
@@ -3675,16 +3677,13 @@
           <div style="display:flex;flex-wrap:wrap;gap:4px">${
 
             tallas.map(t => `
-            <span style="background:var(--graphite);border:1px solid var(--steel);padding:5px 10px;border-radius:5px;font-size:12px;font-weight:600;cursor:pointer;transition:all .15s"
-              onmouseover="this.style.borderColor='var(--gold)';this.style.color='var(--gold-lt)'"
-              onmouseout="this.style.borderColor='var(--steel)';this.style.color='var(--white)'"
-              onclick="addToCarrito('${
-
-
-            p.id}','${t}',event)">${t}</span>`).join('')}
+            <span id="talla-${p.id}-${t}" 
+              style="background:var(--graphite);border:1px solid var(--steel);padding:5px 10px;border-radius:5px;font-size:12px;font-weight:600;cursor:pointer;transition:all .15s"
+              onclick="toggleTallaSeleccionada('${
+            p.id}','${t}',this)">${t}</span>`).join('')}
           </div>
         </div>
-        <button class="btn btn-gold" style="width:100%" onclick="addToCarritoDialog('${
+        <button class="btn btn-gold" style="width:100%" onclick="agregarTallasAlPedido('${
 
             p.id}')">+ Agregar al pedido</button>
         ${
@@ -3694,6 +3693,69 @@
 
             ;
         }).join('');
+    }
+    // Tallas seleccionadas por producto: {prodId: {talla: cantidad}}
+    let tallasSeleccionadas = {};
+
+    function toggleTallaSeleccionada(prodId, talla, el) {
+        if (!tallasSeleccionadas[prodId])
+            tallasSeleccionadas[prodId] = {};
+        if (tallasSeleccionadas[prodId][talla]) {
+            // Ya seleccionada — deseleccionar
+            delete tallasSeleccionadas[prodId][talla];
+            el.style.background = 'var(--graphite)';
+            el.style.borderColor = 'var(--steel)';
+            el.style.color = 'var(--white)';
+            el.textContent = talla;
+        } else {
+            // Seleccionar
+            tallasSeleccionadas[prodId][talla] = 1;
+            el.style.background = 'rgba(201,162,78,.2)';
+            el.style.borderColor = 'var(--gold)';
+            el.style.color = 'var(--gold-lt)';
+            el.textContent = talla + ' ✓';
+        }
+    }
+
+    function agregarTallasAlPedido(prodId) {
+        const seleccionadas = tallasSeleccionadas[prodId] || {};
+        const tallas = Object.keys(seleccionadas);
+        if (tallas.length === 0) {
+            showToast('Seleccioná al menos una talla primero', true);
+            return;
+        }
+        // Agregar cada talla seleccionada al carrito
+        tallas.forEach(talla => addToCarrito(prodId, talla));
+        // Limpiar selección visual
+        tallasSeleccionadas[prodId] = {};
+        tallas.forEach(talla => {
+            const el = document.getElementById(`talla-${prodId}-${talla}`);
+            if (el) {
+                el.style.background = 'var(--graphite)';
+                el.style.borderColor = 'var(--steel)';
+                el.style.color = 'var(--white)';
+                el.textContent = talla;
+            }
+        });
+        // Abrir modal del carrito
+        openModal('modal-carrito');
+    }
+
+    function vaciarCarrito() {
+        if (!confirm('¿Vaciar el pedido completo?'))
+            return;
+        carrito = [];
+        closeModal('modal-carrito');
+        document.getElementById('btn-ver-carrito').style.display = 'none';
+        document.getElementById('carrito-count').textContent = '0';
+        showToast('Pedido vaciado');
+        renderCatalogo();
+    }
+    function seleccionarTallaYAgregar(prodId, talla) {
+        // Agregar al carrito y abrir modal para confirmar
+        addToCarrito(prodId, talla);
+        // Abrir modal del carrito automáticamente
+        openModal('modal-carrito');
     }
     function addToCarritoDialog(prodId) {
         const prod = state.productos.find(p => p.id === prodId);
@@ -3850,6 +3912,8 @@
             id: 'P-' + Date.now(),
             fecha: new Date().toISOString(),
             userId: currentUser.id,
+            userEmail: currentUser.email,
+            // Para identificar cross-device
             academia: currentUser.academia || currentUser.nombre,
             items: [...carrito],
             pais,
@@ -3883,7 +3947,7 @@
     // ══ PEDIDOS ══
     function renderPedidos() {
         const lista = document.getElementById('lista-pedidos');
-        let pedidos = currentUser.rol === 'admin' ? state.pedidos : state.pedidos.filter(p => p.userId === currentUser.id);
+        let pedidos = currentUser.rol === 'admin' ? state.pedidos : state.pedidos.filter(p => p.userId === currentUser.id || p.userEmail === currentUser.email);
         if (!pedidos.length) {
             lista.innerHTML = '<div style="color:var(--muted);padding:48px;text-align:center">No hay pedidos aún.</div>';
             return;
