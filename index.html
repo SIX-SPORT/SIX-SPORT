@@ -2400,71 +2400,53 @@
 
         // Cargar desde Firebase cuando esté listo
         function initFirebase() {
-            if (window.loadFromFirebase) {
-                window.loadFromFirebase().then(fbData => {
-                    if (fbData && (fbData.productos.length > 0 || fbData.pedidos.length > 0)) {
-                        // Fusionar — Firebase tiene prioridad para productos y pedidos
-                        state.productos = fbData.productos.length > 0 ? fbData.productos : state.productos;
-                        state.pedidos = fbData.pedidos.length > 0 ? fbData.pedidos : state.pedidos;
-                        // Para usuarios y config, preservar locales si Firebase no tiene admin
-                        if (fbData.usuarios.length > 0) {
-                            const fbAdmin = fbData.usuarios.find(u => u.id === 'admin1');
-                            state.usuarios = fbAdmin ? fbData.usuarios : state.usuarios;
-                        }
-                        if (fbData.config && Object.keys(fbData.config).length > 0)
-                            state.config = {
-                                ...state.config,
-                                ...fbData.config
-                            };
-                        localStorage.setItem('sixsport_v6', JSON.stringify(state));
-                    }
-                    // Escuchar cambios en tiempo real
-                    window.listenFirebase(fbData => {
-                        // Actualizar siempre, incluso si no hay sesión activa
-                        const CEO = {
-                            id: 'admin1',
-                            nombre: 'Oscar Zuca — CEO',
-                            email: 'oscar-zuca@hotmail.com',
-                            pass: 'Saprissa2026!',
-                            rol: 'admin',
-                            academia: 'SIX-SPORT'
-                        };
-                        // SIEMPRE sincronizar productos y pedidos — aunque estén vacíos
-                        state.productos = fbData.productos || [];
-                        state.pedidos = fbData.pedidos || [];
-                        if (fbData.usuarios && fbData.usuarios.length > 0) {
-                            const fbUsuarios = fbData.usuarios.filter(u => u.id !== 'admin1');
-                            state.usuarios = [CEO, ...fbUsuarios];
-                        }
-                        if (fbData.config && Object.keys(fbData.config).length > 0)
-                            state.config = {
-                                ...state.config,
-                                ...fbData.config
-                            };
-                        localStorage.setItem('sixsport_v6', JSON.stringify(state));
-                        // Solo refrescar UI si hay sesión activa
-                        if (!currentUser)
-                            return;
-                        const activePage = document.querySelector('.page.active')?.id;
-                        if (activePage === 'page-dashboard')
-                            renderDashboard();
-                        else if (activePage === 'page-mispedidos')
-                            renderPedidos();
-                        else if (activePage === 'page-inventario')
-                            renderInventario();
-                        else if (activePage === 'page-ventas')
-                            renderVentas();
-                        // Notificar al CEO si hay nuevo pedido pendiente
-                        const pendientes = state.pedidos.filter(p => p.estado === 'pendiente').length;
-                        if (pendientes > 0 && currentUser.rol === 'admin') {
-                            document.title = '(' + pendientes + ') SIX·SPORT — Pedido pendiente';
-                        } else {
-                            document.title = 'SIX·SPORT';
-                        }
-                        showToast('🔄 Datos actualizados en tiempo real');
-                    });
-                }).catch(e => console.error('Firebase init error:', e));
-            }
+            if (!window.loadFromFirebase)
+                return;
+            const CEO = {
+                id: 'admin1',
+                nombre: 'Oscar Zuca — CEO',
+                email: 'oscar-zuca@hotmail.com',
+                pass: 'Saprissa2026!',
+                rol: 'admin',
+                academia: 'SIX-SPORT'
+            };
+
+            // Escuchar cambios en tiempo real SIEMPRE — sin condiciones
+            window.listenFirebase(fbData => {
+                // Actualizar estado siempre
+                state.productos = fbData.productos || [];
+                state.pedidos = fbData.pedidos || [];
+                if (fbData.usuarios && fbData.usuarios.length > 0) {
+                    const fbUsuarios = fbData.usuarios.filter(u => u.id !== 'admin1');
+                    state.usuarios = [CEO, ...fbUsuarios];
+                }
+                if (fbData.config && Object.keys(fbData.config).length > 0) {
+                    state.config = {
+                        ...state.config,
+                        ...fbData.config
+                    };
+                }
+                localStorage.setItem('sixsport_v6', JSON.stringify(state));
+                // Refrescar UI si hay sesión activa
+                if (!currentUser)
+                    return;
+                const activePage = document.querySelector('.page.active')?.id;
+                if (activePage === 'page-dashboard')
+                    renderDashboard();
+                else if (activePage === 'page-mispedidos')
+                    renderPedidos();
+                else if (activePage === 'page-inventario')
+                    renderInventario();
+                else if (activePage === 'page-ventas')
+                    renderVentas();
+                // Badge en título para CEO
+                const pendientes = state.pedidos.filter(p => p.estado === 'pendiente').length;
+                document.title = pendientes > 0 && currentUser.rol === 'admin' ?
+                `(${pendientes}) SIX·SPORT — Pedido pendiente` : 'SIX·SPORT';
+                if (pendientes > 0 && currentUser.rol === 'admin') {
+                    showToast(`🔔 ${pendientes} pedido(s) pendiente(s)`);
+                }
+            });
         }
 
         if (window.firebaseReady) {
