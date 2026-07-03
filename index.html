@@ -2439,6 +2439,15 @@
     }
 
     function saveState() {
+        // Mantener el documento principal liviano: solo los pedidos PENDIENTES
+        // llevan la imagen inline. Una vez aprobado/rechazado, se conserva únicamente
+        // la copia en la colección 'comprobantes'.
+        try {
+            (state.pedidos || []).forEach(p => {
+                if (p.estado !== 'pendiente' && p.comprobanteImg)
+                    delete p.comprobanteImg;
+            });
+        } catch (e) {}
         // Guardar en localStorage inmediatamente (sincrónico)
         localStorage.setItem('sixsport_v6', JSON.stringify(state));
         // Guardar en Firebase al mismo tiempo (asincrónico)
@@ -3626,6 +3635,8 @@
             const precio = currentUser?.pais === 'NI' ? p.precioNI : p.precioCR;
             const esUni = p.categoria === 'Uniforme Completo (3 piezas)';
             const tallas = (p.tallas || []);
+            const stock = parseInt(p.stock) || 0;
+            const agotado = stock <= 0;
             return `<div style="background:var(--carbon);border:1px solid var(--graphite);border-radius:10px;overflow:hidden;transition:border-color .2s" onmouseover="this.style.borderColor='var(--gold-dk)'" onmouseout="this.style.borderColor='var(--graphite)'">
       ${img ? `<img src="${img}" style="width:100%;height:180px;object-fit:cover;cursor:pointer" onclick="showImgFull('${img}')">` : `<div style="height:180px;background:var(--graphite);display:flex;align-items:center;justify-content:center;font-size:48px">👕</div>`}
       <div style="padding:14px">
@@ -3634,11 +3645,20 @@
         ${esUni ? '<span class="badge badge-uni" style="margin-bottom:8px;display:inline-block">⚡ Juego completo</span>' : ''}
         <div style="font-size:12px;color:var(--muted);margin-bottom:10px">${p.colores || ''}</div>
         <div style="font-family:\'Playfair Display\',serif;font-size:20px;font-weight:700;color:var(--gold-lt);margin-bottom:10px">₡${fmt(p.precioCR)}</div>
+        ${agotado ? `
         <div style="margin-bottom:12px">
-          <div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:5px">Seleccioná tu talla</div>
-          <div style="display:flex;flex-wrap:wrap;gap:4px">${
+          <span class="badge badge-out" style="display:inline-block;margin-bottom:8px">● AGOTADO — Sin stock</span>
+        </div>
+        <button class="btn" style="width:100%;background:var(--graphite);color:var(--muted);cursor:not-allowed;border:1px solid var(--steel)" disabled>Sin stock disponible</button>
+        `
 
-            tallas.map(t => `
+
+
+            : `
+        <div style="margin-bottom:12px">
+          <div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:5px">Seleccioná tu talla · <span style="color:var(--gold-lt)">${
+            stock} en stock</span></div>
+          <div style="display:flex;flex-wrap:wrap;gap:4px">${tallas.map(t => `
             <span id="talla-${p.id}-${t}" 
               style="background:var(--graphite);border:1px solid var(--steel);padding:5px 10px;border-radius:5px;font-size:12px;font-weight:600;cursor:pointer;transition:all .15s"
               onclick="toggleTallaSeleccionada('${
@@ -3648,6 +3668,8 @@
         <button class="btn btn-gold" style="width:100%" onclick="agregarTallasAlPedido('${
 
             p.id}')">+ Agregar al pedido</button>
+        `
+            }
         ${
             currentUser?.rol === 'admin' && !vistaAcademia ? `<button class="btn btn-outline btn-sm" style="width:100%;margin-top:6px" onclick="editProdDesdecatalogo('${p.id}')">✏ Editar este producto</button>` : ''}
       </div>
@@ -3710,7 +3732,14 @@
         const el = document.getElementById(elId);
         if (!el)
             return;
-        // Si está en cache, mostrar directo
+        // 1. Copia inline dentro del pedido — la más confiable (sincroniza con el estado)
+        const ped = state.pedidos.find(p => p.id === pedidoId);
+        if (ped && ped.comprobanteImg && ped.comprobanteImg.startsWith('data')) {
+            _compCache[pedidoId] = ped.comprobanteImg;
+            _mostrarComprobante(el, ped.comprobanteImg);
+            return;
+        }
+        // 2. Cache de sesión
         if (_compCache[pedidoId]) {
             _mostrarComprobante(el, _compCache[pedidoId]);
             return;
@@ -3778,6 +3807,10 @@
         const prod = state.productos.find(p => p.id === prodId);
         if (!prod)
             return;
+        if ((parseInt(prod.stock) || 0) <= 0) {
+            showToast('Sin stock disponible para este producto', true);
+            return;
+        }
         const existing = carrito.find(i => i.prodId === prodId && i.talla === talla);
         if (existing) {
             existing.cantidad++;
@@ -3941,7 +3974,9 @@
             iva: ivaMonto,
             total,
             comprobante: comprobanteImg ? 'tiene' : '',
-            // Solo marca si tiene comprobante
+            // Marca si tiene comprobante
+            comprobanteImg: comprobanteImg || '',
+            // Copia inline (se ve confiablemente mientras está pendiente)
             notas: document.getElementById('ped-notas').value,
             estado: 'pendiente'
         };
@@ -4003,9 +4038,22 @@
         };
         return map[e] || e;
     }
+    function _pedidoOculto(p) {
+        const h = p.hiddenFor || [];
+        return h.includes(currentUser.id) || h.includes(currentUser.email);
+    }
+    function _ocultarPedidoParaMi(p) {
+        if (!Array.isArray(p.hiddenFor))
+            p.hiddenFor = [];
+        if (currentUser.id && !p.hiddenFor.includes(currentUser.id))
+            p.hiddenFor.push(currentUser.id);
+        if (currentUser.email && !p.hiddenFor.includes(currentUser.email))
+            p.hiddenFor.push(currentUser.email);
+    }
     function renderPedidos() {
         const lista = document.getElementById('lista-pedidos');
         let pedidos = currentUser.rol === 'admin' ? state.pedidos : state.pedidos.filter(p => p.userId === currentUser.id || p.userEmail === currentUser.email);
+        pedidos = pedidos.filter(p => !_pedidoOculto(p));
         if (!pedidos.length) {
             lista.innerHTML = '<div style="color:var(--muted);padding:48px;text-align:center">No hay pedidos aún.</div>';
             return;
@@ -4051,7 +4099,7 @@
           <button class="btn btn-danger btn-sm" onclick="accionPedido('${p.id}','rechazado')">✕ Rechazar</button>
         ` : ''}
         ${currentUser.rol === 'admin' && p.estado !== 'pendiente' ? `
-          <button class="btn btn-danger btn-sm" onclick="accionPedido('${p.id}','eliminar')">🗑 Eliminar</button>
+          <button class="btn btn-outline btn-sm" onclick="accionPedido('${p.id}','eliminar')">🗑 Quitar de mi lista</button>
         ` : ''}
         ${(p.userId === currentUser.id || p.userEmail === currentUser.email) && p.estado === 'pendiente' ? `
           <button class="btn btn-danger btn-sm" onclick="accionPedido('${p.id}','cancelar')">✕ Cancelar mi pedido</button>
@@ -4067,12 +4115,28 @@
     }
     function accionPedido(id, accion) {
         if (accion === 'eliminar') {
-            if (!confirm('¿Eliminar este pedido? No se puede deshacer.'))
+            const p = state.pedidos.find(x => x.id === id);
+            if (!p)
                 return;
-            state.pedidos = state.pedidos.filter(p => p.id !== id);
+            const esDueno = p.userId === currentUser.id || p.userEmail === currentUser.email;
+            if (esDueno) {
+                if (!confirm('¿Eliminar este pedido? No se puede deshacer.'))
+                    return;
+                state.pedidos = state.pedidos.filter(x => x.id !== id);
+                saveState();
+                renderPedidos();
+                showToast('Pedido eliminado');
+                return;
+            }
+            // No soy el dueño (ej: CEO sobre un pedido de una academia):
+            // solo lo oculto de MI lista. La academia lo sigue viendo como "rechazado"
+            // y decide ella misma si lo borra.
+            if (!confirm('¿Quitar este pedido de tu lista?\nLa academia seguirá viéndolo hasta que ella lo elimine.'))
+                return;
+            _ocultarPedidoParaMi(p);
             saveState();
             renderPedidos();
-            showToast('Pedido eliminado');
+            showToast('Pedido quitado de tu lista');
             return;
         }
         if (accion === 'cancelar') {
@@ -4114,7 +4178,10 @@
         document.getElementById('modal-ped-title').textContent = 'Pedido ' + p.id;
         document.getElementById('btn-aprobar-ped').style.display = p.estado === 'pendiente' ? '' : 'none';
         document.getElementById('btn-rechazar-ped').style.display = p.estado === 'pendiente' ? '' : 'none';
-        document.getElementById('btn-eliminar-ped').style.display = p.estado !== 'pendiente' ? '' : 'none';
+        const bep = document.getElementById('btn-eliminar-ped');
+        const esDuenoPed = p.userId === currentUser.id || p.userEmail === currentUser.email;
+        bep.style.display = p.estado !== 'pendiente' ? '' : 'none';
+        bep.textContent = esDuenoPed ? '🗑 Eliminar pedido' : '🗑 Quitar de mi lista';
         document.getElementById('modal-ped-content').innerHTML = `
     <div style="display:flex;gap:10px;margin-bottom:14px;flex-wrap:wrap">
       <span class="badge ${
