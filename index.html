@@ -1345,6 +1345,7 @@
             <button class="mobile-nav-item" onclick="showPage('mispedidos',this)">
                 <span class="mni">▲</span>
                 Pedidos
+                <span id="badge-pedidos-mob" style="display:none;background:var(--danger);color:#fff;border-radius:50%;width:16px;height:16px;font-size:10px;font-weight:700;text-align:center;line-height:16px;margin-left:4px">0</span>
             </button>
             <button class="mobile-nav-item admin-only" onclick="showPage('usuarios',this)">
                 <span class="mni">◆</span>
@@ -1395,6 +1396,7 @@
                     <div class="nav-item" id="nav-mispedidos" onclick="showPage('mispedidos',this)">
                         <span class="nav-icon">▲</span>
                         <span id="nav-pedidos-label">Mis Pedidos</span>
+                        <span id="badge-pedidos" style="display:none;background:var(--danger);color:#fff;border-radius:50%;width:18px;height:18px;font-size:10px;font-weight:700;text-align:center;line-height:18px;margin-left:6px">0</span>
                     </div>
 
                     <div class="nav-section admin-only">Análisis</div>
@@ -2318,6 +2320,20 @@
     let carrito = [];
     let selectedPago = null;
 
+
+    function _setupUI(user) {
+        document.getElementById('nav-username').textContent = user.nombre;
+        document.getElementById('nav-role').textContent = user.rol === 'admin' ? 'Admin' : 'Academia';
+        document.getElementById('mobile-username').textContent = user.nombre.split('—')[0].trim();
+        document.getElementById('mobile-role').textContent = user.rol === 'admin' ? 'Admin' : 'Academia';
+        document.getElementById('mobile-role').className = 'badge ' + (user.rol === 'admin' ? 'badge-admin' : 'badge-academia');
+        document.querySelectorAll('.admin-only').forEach(el => el.style.display = user.rol === 'admin' ? '' : 'none');
+        document.getElementById('nav-catalogo-label').textContent = user.rol === 'admin' ? 'Catálogo' : 'Hacer Pedido';
+        document.getElementById('nav-pedidos-label').textContent = user.rol === 'admin' ? 'Todos los Pedidos' : 'Mis Pedidos';
+        document.getElementById('pedidos-page-title').innerHTML = user.rol === 'admin' ? 'Todos los <span class="gold">Pedidos</span>' : 'Mis <span class="gold">Pedidos</span>';
+    }
+
+
     function loadState() {
         const CEO = {
             id: 'admin1',
@@ -2369,8 +2385,8 @@
                     renderInventario();
                 else if (pg === 'page-ventas')
                     renderVentas();
+                updateBadgePedidos();
                 const pend = state.pedidos.filter(p => p.estado === 'pendiente').length;
-                document.title = pend > 0 && currentUser.rol === 'admin' ? `(${pend}) SIX·SPORT — Pedido pendiente` : 'SIX·SPORT';
                 if (pend > 0 && currentUser.rol === 'admin')
                     showToast(`🔔 ${pend} pedido(s) pendiente(s)`);
             });
@@ -2420,18 +2436,6 @@
         document.getElementById('login-screen').style.display = 'flex';
         document.getElementById('app-layout').classList.remove('visible');
         syncConfigUI();
-    }
-
-    function _setupUI(user) {
-        document.getElementById('nav-username').textContent = user.nombre;
-        document.getElementById('nav-role').textContent = user.rol === 'admin' ? 'Admin' : 'Academia';
-        document.getElementById('mobile-username').textContent = user.nombre.split('—')[0].trim();
-        document.getElementById('mobile-role').textContent = user.rol === 'admin' ? 'Admin' : 'Academia';
-        document.getElementById('mobile-role').className = 'badge ' + (user.rol === 'admin' ? 'badge-admin' : 'badge-academia');
-        document.querySelectorAll('.admin-only').forEach(el => el.style.display = user.rol === 'admin' ? '' : 'none');
-        document.getElementById('nav-catalogo-label').textContent = user.rol === 'admin' ? 'Catálogo' : 'Hacer Pedido';
-        document.getElementById('nav-pedidos-label').textContent = user.rol === 'admin' ? 'Todos los Pedidos' : 'Mis Pedidos';
-        document.getElementById('pedidos-page-title').innerHTML = user.rol === 'admin' ? 'Todos los <span class="gold">Pedidos</span>' : 'Mis <span class="gold">Pedidos</span>';
     }
 
     function saveState() {
@@ -2489,7 +2493,11 @@
     function doLogin() {
         const email = document.getElementById('login-user').value.trim().toLowerCase();
         const pass = document.getElementById('login-pass').value;
-        // SIEMPRE verificar CEO primero — credenciales hardcodeadas como respaldo
+        if (!email || pass === undefined) {
+            showToast('Ingresá email y contraseña', true);
+            return;
+        }
+
         const CEO = {
             id: 'admin1',
             nombre: 'Oscar Zuca — CEO',
@@ -2498,71 +2506,62 @@
             rol: 'admin',
             academia: 'SIX-SPORT'
         };
-        let user = null;
+
+        // 1. CEO siempre funciona
         if (email === CEO.email.toLowerCase() && pass === CEO.pass) {
-            user = CEO;
-            // Asegurar que está en state.usuarios
-            const idx = state.usuarios.findIndex(u => u.id === 'admin1');
-            if (idx === -1)
-                state.usuarios.unshift(CEO);
-            else
-                state.usuarios[idx] = CEO;
-            saveState();
-        } else {
-            user = state.usuarios.find(u => u.email.toLowerCase() === email && u.pass === pass);
-        }
-        if (!user) {
-            document.getElementById('login-error').style.display = 'block';
+            _completarLogin(CEO);
             return;
         }
+
+        // 2. Buscar en usuarios locales
+        const user = state.usuarios.find(u => u.email.toLowerCase() === email && u.pass === pass);
+        if (user) {
+            _completarLogin(user);
+            return;
+        }
+
+        // 3. Buscar en Firebase
+        showToast('⏳ Verificando...');
+        if (window.loadFromFirebase) {
+            window.loadFromFirebase().then(fbData => {
+                if (fbData && fbData.usuarios) {
+                    state.usuarios = fbData.usuarios;
+                    localStorage.setItem('sixsport_v6', JSON.stringify(state));
+                    const fbUser = fbData.usuarios.find(u => u.email.toLowerCase() === email && u.pass === pass);
+                    if (fbUser) {
+                        _completarLogin(fbUser);
+                        return;
+                    }
+                }
+                document.getElementById('login-error').style.display = 'block';
+            }).catch(() => {
+                document.getElementById('login-error').style.display = 'block';
+            });
+        } else {
+            document.getElementById('login-error').style.display = 'block';
+        }
+    }
+
+    function _completarLogin(user) {
         document.getElementById('login-error').style.display = 'none';
         currentUser = user;
-        document.getElementById('nav-username').textContent = user.nombre;
-        document.getElementById('nav-role').textContent = user.rol === 'admin' ? 'Admin' : 'Academia';
-        document.getElementById('mobile-username').textContent = user.nombre.split('—')[0].trim();
-        document.getElementById('mobile-role').textContent = user.rol === 'admin' ? 'Admin' : 'Academia';
-        document.getElementById('mobile-role').className = 'badge ' + (user.rol === 'admin' ? 'badge-admin' : 'badge-academia');
-        // Show/hide admin elements
-        document.querySelectorAll('.admin-only').forEach(el => {
-            el.style.display = user.rol === 'admin' ? '' : 'none';
-        });
-        document.getElementById('nav-catalogo-label').textContent = user.rol === 'admin' ? 'Catálogo' : 'Hacer Pedido';
-        document.getElementById('nav-pedidos-label').textContent = user.rol === 'admin' ? 'Todos los Pedidos' : 'Mis Pedidos';
-        document.getElementById('pedidos-page-title').innerHTML = user.rol === 'admin' ? 'Todos los <span class="gold">Pedidos</span>' : 'Mis <span class="gold">Pedidos</span>';
+        _setupUI(user);
         document.getElementById('login-screen').style.display = 'none';
         document.getElementById('app-layout').classList.add('visible');
-        // Guardar sesión para que no se cierre al refrescar
         sessionStorage.setItem('sixsport_session', JSON.stringify({
             id: user.id,
             email: user.email
         }));
-        // Cargar datos más recientes de Firebase al hacer login
         if (window.loadFromFirebase) {
             showToast('⏳ Sincronizando datos...');
             window.loadFromFirebase().then(fbData => {
                 if (fbData) {
-                    const CEO = {
-                        id: 'admin1',
-                        nombre: 'Oscar Zuca — CEO',
-                        email: 'oscar-zuca@hotmail.com',
-                        pass: 'Saprissa2026!',
-                        rol: 'admin',
-                        academia: 'SIX-SPORT'
-                    };
-                    // SIEMPRE sincronizar desde Firebase — aunque estén vacíos
                     state.productos = fbData.productos || [];
                     state.pedidos = fbData.pedidos || [];
-                    if (fbData.usuarios && fbData.usuarios.length > 0) {
-                        const fbUsuarios = fbData.usuarios.filter(u => u.id !== 'admin1');
-                        state.usuarios = [CEO, ...fbUsuarios];
-                    }
-                    // Config siempre desde Firebase — tiene SINPE, transferencia, etc.
-                    if (fbData.config && Object.keys(fbData.config).length > 0) {
-                        state.config = {
-                            ...state.config,
-                            ...fbData.config
-                        };
-                    }
+                    if (fbData.config && Object.keys(fbData.config).length > 0)
+                        state.config = fbData.config;
+                    if (fbData.usuarios && fbData.usuarios.length > 0)
+                        state.usuarios = fbData.usuarios;
                     localStorage.setItem('sixsport_v6', JSON.stringify(state));
                     syncConfigUI();
                 }
@@ -3339,6 +3338,7 @@
 
     // ══ DASHBOARD ══
     function renderDashboard() {
+        updateBadgePedidos();
         const now = new Date();
         document.getElementById('current-date').textContent = now.toLocaleDateString('es-CR', {
             weekday: 'long',
@@ -3703,26 +3703,44 @@
         openModal('modal-carrito');
     }
 
+    // Cache de comprobantes para no recargar
+    const _compCache = {};
     async function verComprobante(pedidoId, destino) {
         const elId = destino === 'modal' ? `comp-modal-${pedidoId}` : `comp-${pedidoId}`;
         const el = document.getElementById(elId);
         if (!el)
             return;
-        el.innerHTML = '<span style="color:var(--muted);font-size:12px">⏳ Cargando...</span>';
+        // Si está en cache, mostrar directo
+        if (_compCache[pedidoId]) {
+            _mostrarComprobante(el, _compCache[pedidoId]);
+            return;
+        }
+        el.innerHTML = '<span style="color:var(--muted);font-size:12px">⏳ Cargando comprobante...</span>';
         try {
             if (window.fbDb && window.fbDoc && window.fbGetDoc) {
                 const snap = await window.fbGetDoc(window.fbDoc(window.fbDb, 'comprobantes', pedidoId));
                 if (snap.exists()) {
                     const img = snap.data().img;
-                    el.innerHTML = `<img src="${img}" style="max-width:100%;max-height:250px;border-radius:8px;border:1px solid var(--steel);cursor:pointer;margin-top:8px" onclick="showImgFull('${img}')">`;
+                    _compCache[pedidoId] = img; // Guardar en cache
+                    _mostrarComprobante(el, img);
                 } else {
-                    el.innerHTML = '<span style="color:var(--muted);font-size:12px">Sin comprobante</span>';
+                    el.innerHTML = '<span style="color:var(--muted);font-size:12px">Sin comprobante adjunto</span>';
                 }
+            } else {
+                el.innerHTML = '<span style="color:var(--muted);font-size:12px">Firebase no disponible</span>';
             }
         } catch (e) {
-            el.innerHTML = '<span style="color:var(--danger);font-size:12px">Error al cargar</span>';
+            el.innerHTML = `<button class="btn btn-outline btn-sm" onclick="verComprobante('${pedidoId}','${destino}')">🔄 Reintentar</button>`;
             console.error('Error comprobante:', e);
         }
+    }
+    function _mostrarComprobante(el, img) {
+        const imgEl = document.createElement('img');
+        imgEl.src = img;
+        imgEl.style.cssText = 'max-width:100%;max-height:280px;border-radius:8px;border:1px solid var(--steel);cursor:pointer;margin-top:8px;display:block';
+        imgEl.onclick = () => showImgFull(img);
+        el.innerHTML = '';
+        el.appendChild(imgEl);
     }
     function vaciarCarrito() {
         if (!confirm('¿Vaciar el pedido completo?'))
@@ -3953,6 +3971,20 @@
     }
 
     // ══ PEDIDOS ══
+    function updateBadgePedidos() {
+        const pend = state.pedidos.filter(p => p.estado === 'pendiente').length;
+        const b1 = document.getElementById('badge-pedidos');
+        const b2 = document.getElementById('badge-pedidos-mob');
+        if (b1) {
+            b1.textContent = pend;
+            b1.style.display = pend > 0 ? 'inline-block' : 'none';
+        }
+        if (b2) {
+            b2.textContent = pend;
+            b2.style.display = pend > 0 ? 'inline-block' : 'none';
+        }
+        document.title = pend > 0 && currentUser?.rol === 'admin' ? `(${pend}) SIX·SPORT — Pedido pendiente` : 'SIX·SPORT';
+    }
     function badgeEstado(e) {
         const map = {
             pendiente: 'badge-pending',
