@@ -611,6 +611,12 @@
         border: 1px solid rgba(192, 57, 43, .3)
     }
 
+    .badge-cancelado {
+        background: rgba(100, 100, 100, .2);
+        color: #999;
+        border: 1px solid rgba(100, 100, 100, .3)
+    }
+
     .badge-admin {
         background: rgba(201, 162, 78, .2);
         color: var(--gold-lt);
@@ -1269,6 +1275,7 @@
     window.fbDb = db;
     window.fbDoc = doc;
     window.fbSetDoc = setDoc;
+    window.fbGetDoc = getDoc;
     document.dispatchEvent(new Event('firebase-ready'));
     console.log('✓ Firebase conectado');
     </script>
@@ -3416,7 +3423,7 @@
           <div class="pedido-header">
             <div><div class="pedido-id">${
                 p.id}</div><div class="pedido-meta">${new Date(p.fecha).toLocaleDateString('es-CR')} · ${p.metodoPago}</div></div>
-            <span class="badge badge-${p.estado}">${p.estado}</span>
+            <span class="badge ${badgeEstado(p.estado)}">${labelEstado(p.estado)}</span>
           </div>
           <div style="font-size:13px;color:var(--muted)">Total: <strong style="color:var(--white)">₡${
                 fmt(p.total)}</strong></div>
@@ -3726,6 +3733,27 @@
         openModal('modal-carrito');
     }
 
+    async function verComprobante(pedidoId, destino) {
+        const elId = destino === 'modal' ? `comp-modal-${pedidoId}` : `comp-${pedidoId}`;
+        const el = document.getElementById(elId);
+        if (!el)
+            return;
+        el.innerHTML = '<span style="color:var(--muted);font-size:12px">⏳ Cargando...</span>';
+        try {
+            if (window.fbDb && window.fbDoc && window.fbGetDoc) {
+                const snap = await window.fbGetDoc(window.fbDoc(window.fbDb, 'comprobantes', pedidoId));
+                if (snap.exists()) {
+                    const img = snap.data().img;
+                    el.innerHTML = `<img src="${img}" style="max-width:100%;max-height:250px;border-radius:8px;border:1px solid var(--steel);cursor:pointer;margin-top:8px" onclick="showImgFull('${img}')">`;
+                } else {
+                    el.innerHTML = '<span style="color:var(--muted);font-size:12px">Sin comprobante</span>';
+                }
+            }
+        } catch (e) {
+            el.innerHTML = '<span style="color:var(--danger);font-size:12px">Error al cargar</span>';
+            console.error('Error comprobante:', e);
+        }
+    }
     function vaciarCarrito() {
         if (!confirm('¿Vaciar el pedido completo?'))
             return;
@@ -3924,8 +3952,8 @@
             subtotal,
             iva: ivaMonto,
             total,
-            comprobante: null,
-            // Se guarda por separado en Firebase
+            comprobante: comprobanteImg ? 'tiene' : '',
+            // Solo marca si tiene comprobante
             notas: document.getElementById('ped-notas').value,
             estado: 'pendiente'
         };
@@ -3936,24 +3964,13 @@
             if (idx !== -1)
                 state.productos[idx].stock = Math.max(0, (parseInt(state.productos[idx].stock) || 0) - item.cantidad);
         });
-        saveState();
-        // Guardar comprobante por separado en Firebase si existe
-        if (comprobanteImg && window.fbDb) {
-            try {
-                window.fbSetDoc(window.fbDoc(window.fbDb, 'comprobantes', pedido.id), {
-                    img: comprobanteImg,
-                    pedidoId: pedido.id,
-                    fecha: pedido.fecha
-                });
-                // Actualizar pedido con referencia al comprobante
-                state.pedidos[0].comprobante = pedido.id; // ID para buscar después
-                localStorage.setItem('sixsport_v6', JSON.stringify(state));
-            } catch (e) {
-                // Si falla, guardar inline (fallback)
-                state.pedidos[0].comprobante = comprobanteImg;
-                localStorage.setItem('sixsport_v6', JSON.stringify(state));
-            }
+        // Guardar comprobante en Firebase por separado
+        if (comprobanteImg && window.fbDb && window.fbDoc && window.fbSetDoc) {
+            window.fbSetDoc(window.fbDoc(window.fbDb, 'comprobantes', pedido.id), {
+                img: comprobanteImg
+            }).catch(e => console.error('Error guardando comprobante:', e));
         }
+        saveState();
         carrito = [];
         document.getElementById('comprobante-preview').src = '';
         document.getElementById('comprobante-preview').style.display = 'none';
@@ -3966,6 +3983,24 @@
     }
 
     // ══ PEDIDOS ══
+    function badgeEstado(e) {
+        const map = {
+            pendiente: 'badge-pending',
+            aprobado: 'badge-approved',
+            rechazado: 'badge-rejected',
+            cancelado: 'badge-cancelado'
+        };
+        return map[e] || 'badge-cancelado';
+    }
+    function labelEstado(e) {
+        const map = {
+            pendiente: 'Pendiente',
+            aprobado: 'Aprobado',
+            rechazado: 'Rechazado',
+            cancelado: 'Cancelado'
+        };
+        return map[e] || e;
+    }
     function renderPedidos() {
         const lista = document.getElementById('lista-pedidos');
         let pedidos = currentUser.rol === 'admin' ? state.pedidos : state.pedidos.filter(p => p.userId === currentUser.id || p.userEmail === currentUser.email);
@@ -3984,9 +4019,9 @@
           <div class="pedido-meta">${new Date(p.fecha).toLocaleString('es-CR')} · ${p.academia} · ${p.metodoPago === 'sinpe' ? '📱 SINPE' : '🏦 Transferencia'}</div>
         </div>
         <div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px">
-          <span class="badge badge-${
+          <span class="badge ${
 
-        p.estado}">${p.estado}</span>
+        badgeEstado(p.estado)}">${labelEstado(p.estado)}</span>
           <span class="badge ${p.pais === 'CR' ? 'badge-cr' : 'badge-ni'}">${p.pais === 'CR' ? '🇨🇷' : '🇳🇮'} ${p.pais}</span>
         </div>
       </div>
@@ -4003,26 +4038,57 @@
         <div class="pedido-total-row grand"><span>TOTAL</span><span>${fmtM(p.total, p.pais)}</span></div>
       </div>
       ${
-        p.comprobante ? `<div style="margin-top:10px"><img src="${p.comprobante}" style="max-height:120px;border-radius:6px;border:1px solid var(--steel);cursor:pointer" onclick="showImgFull('${p.comprobante}')"></div>` : ''}
+        p.comprobante ? `<div style="margin-top:10px" id="comp-${p.id}">
+        <button class="btn btn-outline btn-sm" onclick="verComprobante('${p.id}')">📎 Ver comprobante</button>
+      </div>` : ''}
       ${p.notas ? `<div style="margin-top:8px;font-size:12px;color:var(--muted)">📝 ${p.notas}</div>` : ''}
-      ${currentUser.rol === 'admin' ? `
       <div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap">
         ${
-        p.estado === 'pendiente' ? `
+        currentUser.rol === 'admin' && p.estado === 'pendiente' ? `
           <button class="btn btn-success btn-sm" onclick="accionPedido('${p.id}','aprobado')">✓ Aprobar</button>
           <button class="btn btn-danger btn-sm" onclick="accionPedido('${p.id}','rechazado')">✕ Rechazar</button>
-          <button class="btn btn-outline btn-sm" onclick="verPedidoAdmin('${p.id}')">👁 Ver detalle</button>
-        ` : `
+        ` : ''}
+        ${currentUser.rol === 'admin' && p.estado !== 'pendiente' ? `
           <button class="btn btn-danger btn-sm" onclick="accionPedido('${p.id}','eliminar')">🗑 Eliminar</button>
-          <button class="btn btn-outline btn-sm" onclick="verPedidoAdmin('${p.id}')">👁 Ver detalle</button>
-        `}
-      </div>` : ''}
+        ` : ''}
+        ${(p.userId === currentUser.id || p.userEmail === currentUser.email) && p.estado === 'pendiente' ? `
+          <button class="btn btn-danger btn-sm" onclick="accionPedido('${p.id}','cancelar')">✕ Cancelar mi pedido</button>
+        ` : ''}
+        ${(p.userId === currentUser.id || p.userEmail === currentUser.email) && (p.estado === 'cancelado' || p.estado === 'rechazado') ? `
+          <button class="btn btn-outline btn-sm" onclick="accionPedido('${p.id}','borrar-cancelado')">🗑 Eliminar de mi lista</button>
+        ` : ''}
+        <button class="btn btn-outline btn-sm" onclick="verPedidoAdmin('${p.id}')">👁 Ver detalle</button>
+      </div>
     </div>`
+
         ).join('');
     }
     function accionPedido(id, accion) {
         if (accion === 'eliminar') {
-            if (!confirm('¿Eliminar este pedido?'))
+            if (!confirm('¿Eliminar este pedido? No se puede deshacer.'))
+                return;
+            state.pedidos = state.pedidos.filter(p => p.id !== id);
+            saveState();
+            renderPedidos();
+            showToast('Pedido eliminado');
+            return;
+        }
+        if (accion === 'cancelar') {
+            if (!confirm('¿Cancelar tu pedido?'))
+                return;
+            // Marcar como cancelado en vez de eliminar — así el CEO también lo ve
+            const idx = state.pedidos.findIndex(p => p.id === id);
+            if (idx !== -1) {
+                state.pedidos[idx].estado = 'cancelado';
+                saveState();
+            }
+            renderPedidos();
+            showToast('Pedido cancelado');
+            return;
+        }
+        if (accion === 'borrar-cancelado') {
+            // Director puede borrar sus propios pedidos cancelados o rechazados
+            if (!confirm('¿Eliminar este pedido de tu lista?'))
                 return;
             state.pedidos = state.pedidos.filter(p => p.id !== id);
             saveState();
@@ -4049,8 +4115,8 @@
         document.getElementById('btn-eliminar-ped').style.display = p.estado !== 'pendiente' ? '' : 'none';
         document.getElementById('modal-ped-content').innerHTML = `
     <div style="display:flex;gap:10px;margin-bottom:14px;flex-wrap:wrap">
-      <span class="badge badge-${
-        p.estado}">${p.estado}</span>
+      <span class="badge ${
+        badgeEstado(p.estado)}">${labelEstado(p.estado)}</span>
       <span class="badge ${p.pais === 'CR' ? 'badge-cr' : 'badge-ni'}">${p.pais === 'CR' ? '🇨🇷 Costa Rica' : '🇳🇮 Nicaragua'}</span>
       <span class="badge badge-academia">${p.academia}</span>
     </div>
@@ -4063,7 +4129,8 @@
       <div style="display:flex;justify-content:space-between;font-weight:700;font-size:16px;color:var(--gold-lt);margin-top:6px"><span>TOTAL</span><span>${fmtM(p.total, p.pais)}</span></div>
     </div>
     ${
-        p.comprobante ? `<div><div style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px">Comprobante de pago</div><img src="${p.comprobante}" style="max-width:100%;max-height:250px;border-radius:8px;border:1px solid var(--steel);cursor:pointer" onclick="showImgFull('${p.comprobante}')"></div>` : '<div style="color:var(--muted);font-size:13px">Sin comprobante adjunto.</div>'}
+        p.comprobante ? `<div><div style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px">Comprobante de pago</div>
+      <div id="comp-modal-${p.id}"><button class="btn btn-outline btn-sm" onclick="verComprobante('${p.id}','modal')">📎 Cargar comprobante</button></div></div>` : '<div style="color:var(--muted);font-size:13px">Sin comprobante adjunto.</div>'}
     ${p.notas ? `<div style="margin-top:10px;padding:10px;background:var(--graphite);border-radius:6px;font-size:13px">📝 ${p.notas}</div>` : ''}
   `
         ;
