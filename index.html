@@ -1761,9 +1761,30 @@ function _enMesSel(fecha){
   return d.getMonth()===selMes&&d.getFullYear()===selAno;
 }
 function _periodoLabel(){return selDia?new Date(selDia).toLocaleDateString('es-CR'):(MESES[selMes]+' '+selAno);}
+function _calendarioHTML(){
+  const primerDia=new Date(selAno,selMes,1).getDay();       // 0=Dom..6=Sáb
+  const blancos=(primerDia+6)%7;                            // semana empieza lunes
+  const diasMes=new Date(selAno,selMes+1,0).getDate();
+  const hoy=new Date();
+  const esHoy=d=>hoy.getDate()===d&&hoy.getMonth()===selMes&&hoy.getFullYear()===selAno;
+  const esSel=d=>selDia&&selDia.getDate()===d&&selDia.getMonth()===selMes&&selDia.getFullYear()===selAno;
+  const dow=['L','M','M','J','V','S','D'].map(x=>`<div style="text-align:center;font-size:11px;color:var(--muted)">${x}</div>`).join('');
+  let celdas='';
+  for(let b=0;b<blancos;b++)celdas+='<div></div>';
+  for(let d=1;d<=diasMes;d++){
+    let estilo;
+    if(esSel(d))estilo='font-weight:700;color:#141414;background:var(--gold);border:1px solid var(--gold)';
+    else if(esHoy(d))estilo='color:var(--gold-lt);border:1px solid var(--gold)';
+    else estilo='color:var(--white);border:1px solid var(--steel)';
+    celdas+=`<div onclick="seleccionarDia(${d})" style="cursor:pointer;border-radius:6px;height:34px;display:flex;align-items:center;justify-content:center;font-size:13px;${estilo}">${d}</div>`;
+  }
+  return `<div style="max-width:300px;margin:12px auto 0">
+    <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-bottom:6px">${dow}</div>
+    <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:4px">${celdas}</div>
+  </div>`;
+}
 function navMesHTML(){
-  const diaVal=selDia?_fechaInputVal(selDia.toISOString()):'';
-  return `<div style="background:var(--carbon);border:1px solid var(--steel);border-radius:10px;padding:10px;margin-bottom:14px">
+  return `<div style="background:var(--carbon);border:1px solid var(--steel);border-radius:10px;padding:12px;margin-bottom:14px">
     <div style="display:flex;align-items:center;justify-content:center;gap:12px">
       <button class="btn btn-outline btn-sm" style="width:40px" onclick="cambiarMes(-1)" aria-label="Mes anterior">‹</button>
       <div style="text-align:center;min-width:160px">
@@ -1773,12 +1794,14 @@ function navMesHTML(){
       <button class="btn btn-outline btn-sm" style="width:40px" onclick="cambiarMes(1)" aria-label="Mes siguiente">›</button>
       ${(_esMesActual())?'':'<button class="btn btn-outline btn-sm" onclick="irMesActual()">Hoy</button>'}
     </div>
-    <div style="display:flex;align-items:center;justify-content:center;gap:8px;margin-top:10px;flex-wrap:wrap">
-      <span style="font-size:12px;color:var(--muted)">📅 Ver un día específico:</span>
-      <input type="date" value="${diaVal}" onchange="setDiaEspecifico(this.value)" style="background:var(--graphite);border:1px solid var(--steel);color:var(--white);border-radius:6px;padding:5px 9px;font-size:12px">
-      ${selDia?'<button class="btn btn-gold btn-sm" onclick="verTodoElMes()">↩ Ver todo el mes</button>':''}
-    </div>
+    <div style="text-align:center;font-size:11px;color:var(--muted);margin-top:8px">Tocá un día para ver solo ese día</div>
+    ${_calendarioHTML()}
+    ${selDia?'<div style="text-align:center;margin-top:10px"><button class="btn btn-gold btn-sm" onclick="verTodoElMes()">↩ Ver todo el mes</button></div>':''}
   </div>`;
+}
+function seleccionarDia(d){
+  selDia=new Date(selAno,selMes,d,12,0,0);
+  _refrescarMes();
 }
 function cambiarMes(delta){
   selDia=null;
@@ -1788,11 +1811,6 @@ function cambiarMes(delta){
   _refrescarMes();
 }
 function irMesActual(){const n=new Date();selDia=null;selMes=n.getMonth();selAno=n.getFullYear();_refrescarMes();}
-function setDiaEspecifico(val){
-  if(!val){selDia=null;}
-  else{const d=new Date(val+'T12:00:00');selDia=d;selMes=d.getMonth();selAno=d.getFullYear();}
-  _refrescarMes();
-}
 function verTodoElMes(){selDia=null;_refrescarMes();}
 function _refrescarMes(){
   const pg=document.querySelector('.page.active')?.id;
