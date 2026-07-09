@@ -1624,7 +1624,7 @@ function renderPrecios(){
 
   // ── TOTALES REALES DESDE PEDIDOS APROBADOS ──
   const navEl=document.getElementById('precios-nav-mes'); if(navEl)navEl.innerHTML=navMesHTML();
-  const lblEl=document.getElementById('pre-mes-label'); if(lblEl)lblEl.textContent=MESES[selMes]+' '+selAno;
+  const lblEl=document.getElementById('pre-mes-label'); if(lblEl)lblEl.textContent=_periodoLabel();
   const pedidosAprobados=state.pedidos.filter(p=>p.estado==='aprobado'&&_enMesSel(p.fecha));
 
   let totalCobrar=0, totalMiGanNeta=0, totalIvaGobierno=0, totalGanSaprissa=0, totalUnidades=0;
@@ -1656,7 +1656,7 @@ function renderPrecios(){
   if(document.getElementById('pre-total-cobrar'))
     document.getElementById('pre-total-cobrar').textContent=sinPedidos?'₡0':'₡'+fmt(totalCobrar);
   if(document.getElementById('pre-total-cobrar-sub'))
-    document.getElementById('pre-total-cobrar-sub').textContent=sinPedidos?('Sin pedidos aprobados en '+MESES[selMes]+' '+selAno):totalUnidades+' unidades vendidas';
+    document.getElementById('pre-total-cobrar-sub').textContent=sinPedidos?('Sin pedidos aprobados en '+_periodoLabel()):totalUnidades+' unidades vendidas';
   if(document.getElementById('pre-mi-ganancia'))
     document.getElementById('pre-mi-ganancia').textContent=sinPedidos?'₡0':'₡'+fmt(totalMiGanNeta);
   if(document.getElementById('pre-iva-total'))
@@ -1753,27 +1753,47 @@ function renderDashboard(){
 
 // ══ NAVEGADOR DE MES (compartido: Pedidos, Ventas, Precios, Inventario) ══
 const MESES=['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
-let selMes=new Date().getMonth(), selAno=new Date().getFullYear();
-function _esMesActual(){const n=new Date();return selMes===n.getMonth()&&selAno===n.getFullYear();}
-function _enMesSel(fecha){const d=new Date(fecha);return d.getMonth()===selMes&&d.getFullYear()===selAno;}
+let selMes=new Date().getMonth(), selAno=new Date().getFullYear(), selDia=null;
+function _esMesActual(){const n=new Date();return !selDia&&selMes===n.getMonth()&&selAno===n.getFullYear();}
+function _enMesSel(fecha){
+  const d=new Date(fecha);
+  if(selDia){return d.getFullYear()===selDia.getFullYear()&&d.getMonth()===selDia.getMonth()&&d.getDate()===selDia.getDate();}
+  return d.getMonth()===selMes&&d.getFullYear()===selAno;
+}
+function _periodoLabel(){return selDia?new Date(selDia).toLocaleDateString('es-CR'):(MESES[selMes]+' '+selAno);}
 function navMesHTML(){
-  return `<div style="display:flex;align-items:center;justify-content:center;gap:12px;background:var(--carbon);border:1px solid var(--steel);border-radius:10px;padding:10px;margin-bottom:14px">
-    <button class="btn btn-outline btn-sm" style="width:40px" onclick="cambiarMes(-1)" aria-label="Mes anterior">‹</button>
-    <div style="text-align:center;min-width:150px">
-      <div style="font-size:17px;font-weight:700;color:var(--gold-lt)">${MESES[selMes]} ${selAno}</div>
-      <div style="font-size:11px;color:var(--muted)">${_esMesActual()?'mes actual':'&nbsp;'}</div>
+  const diaVal=selDia?_fechaInputVal(selDia.toISOString()):'';
+  return `<div style="background:var(--carbon);border:1px solid var(--steel);border-radius:10px;padding:10px;margin-bottom:14px">
+    <div style="display:flex;align-items:center;justify-content:center;gap:12px">
+      <button class="btn btn-outline btn-sm" style="width:40px" onclick="cambiarMes(-1)" aria-label="Mes anterior">‹</button>
+      <div style="text-align:center;min-width:160px">
+        <div style="font-size:17px;font-weight:700;color:var(--gold-lt)">${_periodoLabel()}</div>
+        <div style="font-size:11px;color:var(--muted)">${selDia?'día específico':(_esMesActual()?'mes actual':'mes completo')}</div>
+      </div>
+      <button class="btn btn-outline btn-sm" style="width:40px" onclick="cambiarMes(1)" aria-label="Mes siguiente">›</button>
+      ${(_esMesActual())?'':'<button class="btn btn-outline btn-sm" onclick="irMesActual()">Hoy</button>'}
     </div>
-    <button class="btn btn-outline btn-sm" style="width:40px" onclick="cambiarMes(1)" aria-label="Mes siguiente">›</button>
-    ${_esMesActual()?'':'<button class="btn btn-outline btn-sm" onclick="irMesActual()">Hoy</button>'}
+    <div style="display:flex;align-items:center;justify-content:center;gap:8px;margin-top:10px;flex-wrap:wrap">
+      <span style="font-size:12px;color:var(--muted)">📅 Ver un día específico:</span>
+      <input type="date" value="${diaVal}" onchange="setDiaEspecifico(this.value)" style="background:var(--graphite);border:1px solid var(--steel);color:var(--white);border-radius:6px;padding:5px 9px;font-size:12px">
+      ${selDia?'<button class="btn btn-gold btn-sm" onclick="verTodoElMes()">↩ Ver todo el mes</button>':''}
+    </div>
   </div>`;
 }
 function cambiarMes(delta){
+  selDia=null;
   selMes+=delta;
   if(selMes<0){selMes=11;selAno--;}
   if(selMes>11){selMes=0;selAno++;}
   _refrescarMes();
 }
-function irMesActual(){const n=new Date();selMes=n.getMonth();selAno=n.getFullYear();_refrescarMes();}
+function irMesActual(){const n=new Date();selDia=null;selMes=n.getMonth();selAno=n.getFullYear();_refrescarMes();}
+function setDiaEspecifico(val){
+  if(!val){selDia=null;}
+  else{const d=new Date(val+'T12:00:00');selDia=d;selMes=d.getMonth();selAno=d.getFullYear();}
+  _refrescarMes();
+}
+function verTodoElMes(){selDia=null;_refrescarMes();}
 function _refrescarMes(){
   const pg=document.querySelector('.page.active')?.id;
   if(pg==='page-mispedidos')renderPedidos();
@@ -1803,7 +1823,7 @@ function renderInventario(){
   if(filtroInv==='mes')prods=prods.filter(p=>p.fechaIngreso&&_enMesSel(p.fechaIngreso));
   if(busqInv)prods=prods.filter(p=>p.nombre.toLowerCase().includes(busqInv.toLowerCase()));
   const tbody=document.getElementById('tabla-inventario');
-  if(!prods.length){tbody.innerHTML=`<tr><td colspan="11" style="text-align:center;padding:28px;color:var(--muted)">${filtroInv==='mes'?('Sin productos ingresados en '+MESES[selMes]+' '+selAno+'.'):'Sin productos.'}</td></tr>`;return;}
+  if(!prods.length){tbody.innerHTML=`<tr><td colspan="11" style="text-align:center;padding:28px;color:var(--muted)">${filtroInv==='mes'?('Sin productos ingresados en '+_periodoLabel()+'.'):'Sin productos.'}</td></tr>`;return;}
   tbody.innerHTML=prods.map(p=>{
     const stock=parseInt(p.stock)||0,mn=parseInt(p.stockMin)||5;
     const sb=stock===0?'badge-out':stock<=mn?'badge-low':'badge-ok';
@@ -2286,7 +2306,7 @@ function renderPedidos(){
   pedidos=pedidos.filter(p=>_enMesSel(p.fecha));
   const totalMes=pedidos.reduce((a,p)=>a+(p.total||0),0);
   const resumen=`<div style="font-size:12px;color:var(--muted);margin:0 2px 12px">Mostrando <span style="color:var(--gold-lt);font-weight:600">${pedidos.length} pedido${pedidos.length===1?'':'s'}</span> · Total <span style="color:var(--gold-lt);font-weight:600">₡${fmt(totalMes)}</span></div>`;
-  if(!pedidos.length){lista.innerHTML=navMesHTML()+resumen+`<div style="color:var(--muted);padding:48px;text-align:center">No hay pedidos en ${MESES[selMes]} ${selAno}.</div>`;return;}
+  if(!pedidos.length){lista.innerHTML=navMesHTML()+resumen+`<div style="color:var(--muted);padding:48px;text-align:center">No hay pedidos en ${_periodoLabel()}.</div>`;return;}
   lista.innerHTML=navMesHTML()+resumen+pedidos.map(p=>`
     <div class="pedido-card">
       <div class="pedido-header">
@@ -2416,7 +2436,7 @@ function renderVentas(){
   document.getElementById('v-total-mes').textContent='₡'+fmt(vm.reduce((a,p)=>a+p.total,0));
   document.getElementById('v-iva-mes').textContent='₡'+fmt(vm.reduce((a,p)=>a+p.iva,0));
   const lista=document.getElementById('lista-ventas-admin');
-  if(!vm.length){lista.innerHTML=`<div style="color:var(--muted);padding:32px;text-align:center">Sin ventas aprobadas en ${MESES[selMes]} ${selAno}.</div>`;return;}
+  if(!vm.length){lista.innerHTML=`<div style="color:var(--muted);padding:32px;text-align:center">Sin ventas aprobadas en ${_periodoLabel()}.</div>`;return;}
   lista.innerHTML=vm.map(p=>`
     <div class="pedido-card">
       <div class="pedido-header">
