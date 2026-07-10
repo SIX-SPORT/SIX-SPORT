@@ -875,6 +875,31 @@ console.log('✓ Firebase conectado');
   </div>
 </div>
 
+<!-- MODAL ELEGIR PERÍODO -->
+<div class="modal-overlay" id="modal-periodo">
+  <div class="modal" style="width:420px">
+    <div class="modal-title">Elegir período</div>
+    <div style="display:flex;align-items:center;justify-content:center;gap:16px;margin-bottom:16px">
+      <button class="btn btn-outline btn-sm" style="width:40px" onclick="periodoAnoNav(-1)" aria-label="Año anterior">‹</button>
+      <div id="periodo-ano-label" style="font-size:20px;font-weight:700;color:var(--white);min-width:70px;text-align:center">2026</div>
+      <button class="btn btn-outline btn-sm" style="width:40px" onclick="periodoAnoNav(1)" aria-label="Año siguiente">›</button>
+    </div>
+    <div id="periodo-grid" style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px"></div>
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:12px">
+      <button class="btn btn-outline btn-sm" onclick="periodoMesActual()">Mes actual</button>
+      <button class="btn btn-outline btn-sm" onclick="periodoTodoAno()">Todo el año</button>
+      <button class="btn btn-outline btn-sm" onclick="periodoTodo()">Todo</button>
+    </div>
+    <div style="border-top:1px solid var(--graphite);margin-top:16px;padding-top:14px">
+      <div style="font-size:12px;color:var(--muted);margin-bottom:8px">Ver un día exacto</div>
+      <input type="date" id="periodo-dia-input" onchange="periodoDiaExacto(this.value)" style="width:100%;background:var(--graphite);border:1px solid var(--steel);color:var(--white);border-radius:8px;padding:12px;font-size:15px;text-align:center">
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('modal-periodo')">Cerrar</button>
+    </div>
+  </div>
+</div>
+
 <!-- MODAL CARRITO / PEDIDO -->
 <div class="modal-overlay" id="modal-carrito">
   <div class="modal modal-lg">
@@ -1753,65 +1778,51 @@ function renderDashboard(){
 
 // ══ NAVEGADOR DE MES (compartido: Pedidos, Ventas, Precios, Inventario) ══
 const MESES=['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
-let selMes=new Date().getMonth(), selAno=new Date().getFullYear(), selDia=null;
-function _esMesActual(){const n=new Date();return !selDia&&selMes===n.getMonth()&&selAno===n.getFullYear();}
+let selMes=new Date().getMonth(), selAno=new Date().getFullYear(), selDia=null, filtroPeriodo='mes', _periodoAno=new Date().getFullYear();
+const MESES_C=['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
+function _esMesActual(){const n=new Date();return filtroPeriodo==='mes'&&selMes===n.getMonth()&&selAno===n.getFullYear();}
 function _enMesSel(fecha){
+  if(filtroPeriodo==='todo')return true;
   const d=new Date(fecha);
-  if(selDia){return d.getFullYear()===selDia.getFullYear()&&d.getMonth()===selDia.getMonth()&&d.getDate()===selDia.getDate();}
+  if(filtroPeriodo==='ano')return d.getFullYear()===selAno;
+  if(filtroPeriodo==='dia'&&selDia)return d.getFullYear()===selDia.getFullYear()&&d.getMonth()===selDia.getMonth()&&d.getDate()===selDia.getDate();
   return d.getMonth()===selMes&&d.getFullYear()===selAno;
 }
-function _periodoLabel(){return selDia?new Date(selDia).toLocaleDateString('es-CR'):(MESES[selMes]+' '+selAno);}
-function _calendarioHTML(){
-  const primerDia=new Date(selAno,selMes,1).getDay();       // 0=Dom..6=Sáb
-  const blancos=(primerDia+6)%7;                            // semana empieza lunes
-  const diasMes=new Date(selAno,selMes+1,0).getDate();
-  const hoy=new Date();
-  const esHoy=d=>hoy.getDate()===d&&hoy.getMonth()===selMes&&hoy.getFullYear()===selAno;
-  const esSel=d=>selDia&&selDia.getDate()===d&&selDia.getMonth()===selMes&&selDia.getFullYear()===selAno;
-  const dow=['L','M','M','J','V','S','D'].map(x=>`<div style="text-align:center;font-size:11px;color:var(--muted)">${x}</div>`).join('');
-  let celdas='';
-  for(let b=0;b<blancos;b++)celdas+='<div></div>';
-  for(let d=1;d<=diasMes;d++){
-    let estilo;
-    if(esSel(d))estilo='font-weight:700;color:#141414;background:var(--gold);border:1px solid var(--gold)';
-    else if(esHoy(d))estilo='color:var(--gold-lt);border:1px solid var(--gold)';
-    else estilo='color:var(--white);border:1px solid var(--steel)';
-    celdas+=`<div onclick="seleccionarDia(${d})" style="cursor:pointer;border-radius:6px;height:34px;display:flex;align-items:center;justify-content:center;font-size:13px;${estilo}">${d}</div>`;
-  }
-  return `<div style="max-width:300px;margin:12px auto 0">
-    <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-bottom:6px">${dow}</div>
-    <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:4px">${celdas}</div>
-  </div>`;
+function _periodoLabel(){
+  if(filtroPeriodo==='todo')return 'Todo';
+  if(filtroPeriodo==='ano')return 'Año '+selAno;
+  if(filtroPeriodo==='dia'&&selDia)return new Date(selDia).toLocaleDateString('es-CR');
+  return MESES[selMes]+' '+selAno;
+}
+function _periodoSub(){
+  if(filtroPeriodo==='todo')return 'todo el historial';
+  if(filtroPeriodo==='ano')return 'año completo';
+  if(filtroPeriodo==='dia')return 'día específico';
+  return _esMesActual()?'mes actual':'mes completo';
 }
 function navMesHTML(){
-  return `<div style="background:var(--carbon);border:1px solid var(--steel);border-radius:10px;padding:12px;margin-bottom:14px">
-    <div style="display:flex;align-items:center;justify-content:center;gap:12px">
-      <button class="btn btn-outline btn-sm" style="width:40px" onclick="cambiarMes(-1)" aria-label="Mes anterior">‹</button>
-      <div style="text-align:center;min-width:160px">
-        <div style="font-size:17px;font-weight:700;color:var(--gold-lt)">${_periodoLabel()}</div>
-        <div style="font-size:11px;color:var(--muted)">${selDia?'día específico':(_esMesActual()?'mes actual':'mes completo')}</div>
-      </div>
-      <button class="btn btn-outline btn-sm" style="width:40px" onclick="cambiarMes(1)" aria-label="Mes siguiente">›</button>
-      ${(_esMesActual())?'':'<button class="btn btn-outline btn-sm" onclick="irMesActual()">Hoy</button>'}
-    </div>
-    <div style="text-align:center;font-size:11px;color:var(--muted);margin-top:8px">Tocá un día para ver solo ese día</div>
-    ${_calendarioHTML()}
-    ${selDia?'<div style="text-align:center;margin-top:10px"><button class="btn btn-gold btn-sm" onclick="verTodoElMes()">↩ Ver todo el mes</button></div>':''}
+  const flechas=filtroPeriodo!=='todo'&&filtroPeriodo!=='ano';
+  return `<div style="display:flex;align-items:center;justify-content:center;gap:10px;background:var(--carbon);border:1px solid var(--steel);border-radius:10px;padding:10px;margin-bottom:14px">
+    ${flechas?'<button class="btn btn-outline btn-sm" style="width:38px" onclick="cambiarMes(-1)" aria-label="Anterior">‹</button>':''}
+    <button onclick="abrirPeriodo()" style="display:flex;align-items:center;gap:8px;background:var(--graphite);border:1px solid var(--steel);border-radius:8px;padding:7px 16px;cursor:pointer;min-width:150px;justify-content:center">
+      <span style="font-size:15px">📅</span>
+      <span style="text-align:center">
+        <span style="display:block;font-size:15px;font-weight:700;color:var(--gold-lt)">${_periodoLabel()}</span>
+        <span style="display:block;font-size:10px;color:var(--muted)">${_periodoSub()}</span>
+      </span>
+    </button>
+    ${flechas?'<button class="btn btn-outline btn-sm" style="width:38px" onclick="cambiarMes(1)" aria-label="Siguiente">›</button>':''}
   </div>`;
 }
-function seleccionarDia(d){
-  selDia=new Date(selAno,selMes,d,12,0,0);
-  _refrescarMes();
-}
 function cambiarMes(delta){
-  selDia=null;
-  selMes+=delta;
-  if(selMes<0){selMes=11;selAno--;}
-  if(selMes>11){selMes=0;selAno++;}
+  if(filtroPeriodo==='dia'&&selDia){const d=new Date(selDia);d.setDate(d.getDate()+delta);selDia=d;selMes=d.getMonth();selAno=d.getFullYear();}
+  else{
+    filtroPeriodo='mes';selDia=null;selMes+=delta;
+    if(selMes<0){selMes=11;selAno--;}
+    if(selMes>11){selMes=0;selAno++;}
+  }
   _refrescarMes();
 }
-function irMesActual(){const n=new Date();selDia=null;selMes=n.getMonth();selAno=n.getFullYear();_refrescarMes();}
-function verTodoElMes(){selDia=null;_refrescarMes();}
 function _refrescarMes(){
   const pg=document.querySelector('.page.active')?.id;
   if(pg==='page-mispedidos')renderPedidos();
@@ -1819,6 +1830,28 @@ function _refrescarMes(){
   else if(pg==='page-precios')renderPrecios();
   else if(pg==='page-inventario')renderInventario();
 }
+// ── Modal "Elegir período" ──
+function abrirPeriodo(){ _periodoAno=selAno; _renderPeriodoGrid(); openModal('modal-periodo'); }
+function _renderPeriodoGrid(){
+  const lbl=document.getElementById('periodo-ano-label'); if(lbl)lbl.textContent=_periodoAno;
+  const cont=document.getElementById('periodo-grid'); if(!cont)return;
+  const n=new Date();
+  cont.innerHTML=MESES_C.map((m,i)=>{
+    const activo=filtroPeriodo==='mes'&&i===selMes&&_periodoAno===selAno;
+    const esActual=i===n.getMonth()&&_periodoAno===n.getFullYear();
+    const est=activo
+      ?'background:var(--gold);color:#141414;border:1px solid var(--gold);font-weight:700'
+      :('background:var(--graphite);color:var(--white);border:1px solid '+(esActual?'var(--gold-dk)':'var(--steel)'));
+    return `<button onclick="elegirMes(${i})" style="${est};border-radius:8px;padding:14px 0;font-size:15px;cursor:pointer">${m}</button>`;
+  }).join('');
+  const di=document.getElementById('periodo-dia-input'); if(di)di.value=selDia?_fechaInputVal(selDia.toISOString()):_fechaInputVal(new Date().toISOString());
+}
+function periodoAnoNav(delta){ _periodoAno+=delta; _renderPeriodoGrid(); }
+function elegirMes(m){ selMes=m; selAno=_periodoAno; filtroPeriodo='mes'; selDia=null; closeModal('modal-periodo'); _refrescarMes(); }
+function periodoMesActual(){ const n=new Date(); selMes=n.getMonth(); selAno=n.getFullYear(); filtroPeriodo='mes'; selDia=null; closeModal('modal-periodo'); _refrescarMes(); }
+function periodoTodoAno(){ selAno=_periodoAno; filtroPeriodo='ano'; selDia=null; closeModal('modal-periodo'); _refrescarMes(); }
+function periodoTodo(){ filtroPeriodo='todo'; selDia=null; closeModal('modal-periodo'); _refrescarMes(); }
+function periodoDiaExacto(val){ if(!val)return; const d=new Date(val+'T12:00:00'); selDia=d; selMes=d.getMonth(); selAno=d.getFullYear(); filtroPeriodo='dia'; closeModal('modal-periodo'); _refrescarMes(); }
 // Fecha de ingreso de inventario (helpers)
 function _backfillFechaIngreso(){
   let changed=false;
