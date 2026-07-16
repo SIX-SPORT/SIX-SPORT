@@ -11,6 +11,7 @@
   --muted:#666666;--silver:#999999;--white:#F5F0E8;
   --gold:#C9A24E;--gold-lt:#D4AF6E;--gold-dk:#8B6914;--gold-glow:rgba(201,162,78,.18);
   --danger:#C0392B;--success:#1A7A4A;--warning:#B8860B;
+  --gasto:#E57368;--gasto-lt:#B87A7A;--ganancia:#4CAF82;--ganancia-sap:#85B4FF;
 }
 *{margin:0;padding:0;box-sizing:border-box}
 html,body{height:100%}
@@ -537,14 +538,14 @@ console.log('✓ Firebase conectado');
           <div style="font-size:11px;color:var(--muted);padding:6px 14px;background:var(--carbon);border:1px solid var(--graphite);border-top:none">
             Precio Perú + $3.50 impuesto + transporte = Lo que me cuesta cada prenda
           </div>
-          <div class="table-wrap" style="border-radius:0 0 8px 8px">
-            <table>
+          <div class="table-wrap" style="border-radius:0 0 8px 8px;overflow-x:auto">
+            <table style="min-width:760px">
               <thead><tr>
-                <th>Prenda</th>
-                <th style="color:var(--gold-lt)">Precio Perú (USD) ✎</th>
-                <th>+ Impuesto $3.50</th>
+                <th style="min-width:220px;text-align:left">Prenda</th>
+                <th style="color:var(--gasto)">Precio Perú (USD) ✎</th>
+                <th style="color:var(--gasto-lt)">+ Impuesto $3.50 <br><span style="font-size:9px;font-weight:400">→ al gobierno</span></th>
                 <th>+ Transporte (₡)</th>
-                <th>= Mi costo (₡)</th>
+                <th style="color:var(--gasto)">= Mi costo (₡)</th>
                 <th></th>
               </tr></thead>
               <tbody id="tabla-peru"></tbody>
@@ -564,17 +565,17 @@ console.log('✓ Firebase conectado');
           <div style="font-size:11px;color:var(--muted);padding:6px 14px;background:var(--carbon);border:1px solid var(--graphite);border-top:none">
             Yo le vendo a Saprissa sin IVA + IVA 13% = Lo que Saprissa me deposita
           </div>
-          <div class="table-wrap" style="border-radius:0 0 8px 8px">
-            <table>
+          <div class="table-wrap" style="border-radius:0 0 8px 8px;overflow-x:auto">
+            <table style="min-width:960px">
               <thead><tr>
-                <th>Tipo de Prenda</th>
-                <th>Precio por Unidad (₡)</th>
-                <th>IVA 13% (₡)</th>
-                <th>Importe de Fábrica (₡)</th>
+                <th style="min-width:240px;text-align:left">Tipo de Prenda</th>
+                <th style="color:var(--gasto)">Precio por Unidad (₡)</th>
+                <th style="color:var(--gasto-lt)">IVA 13% (₡)<br><span style="font-size:9px;font-weight:400">→ al gobierno</span></th>
+                <th style="color:var(--gasto)">Importe de Fábrica (₡)</th>
                 <th>Precio Venta Web sin IVA (₡)</th>
-                <th>IVA Final (₡)</th>
+                <th style="color:var(--gasto-lt)">IVA Final (₡)<br><span style="font-size:9px;font-weight:400">→ al gobierno</span></th>
                 <th>Precio Venta Web con IVA (₡)</th>
-                <th style="color:#4CAF82">Ganancia Saprissa (₡)</th>
+                <th style="color:var(--ganancia)">Ganancia Saprissa (₡)</th>
               </tr></thead>
               <tbody id="tabla-saprissa"></tbody>
             </table>
@@ -593,15 +594,15 @@ console.log('✓ Firebase conectado');
           <div style="font-size:11px;color:var(--muted);padding:6px 14px;background:var(--carbon);border:1px solid var(--graphite);border-top:none">
             Saprissa vende al padre de familia — su ganancia es la diferencia entre lo que me pagan y lo que cobran al público
           </div>
-          <div class="table-wrap" style="border-radius:0 0 8px 8px">
-            <table>
+          <div class="table-wrap" style="border-radius:0 0 8px 8px;overflow-x:auto">
+            <table style="min-width:820px">
               <thead><tr>
-                <th>Prenda</th>
+                <th style="min-width:220px;text-align:left">Prenda</th>
                 <th>Lo que me pagaron (₡)</th>
                 <th style="color:var(--gold-lt)">Precio final al público c/IVA (₡) ✎</th>
-                <th>IVA incluido (₡)</th>
+                <th style="color:var(--gasto-lt)">IVA incluido (₡)<br><span style="font-size:9px;font-weight:400">→ al gobierno</span></th>
                 <th>Precio final con IVA (₡) / USD</th>
-                <th style="color:#85B4FF">Ganancia Saprissa (₡)</th>
+                <th style="color:var(--ganancia-sap)">Ganancia Saprissa (₡)</th>
               </tr></thead>
               <tbody id="tabla-publico"></tbody>
             </table>
@@ -617,16 +618,16 @@ console.log('✓ Firebase conectado');
               <button class="btn btn-outline btn-sm" onclick="exportSeccion('D','xlsx')">⬇ Excel</button>
             </div>
           </div>
-          <div class="table-wrap" style="border-radius:0 0 8px 8px">
-            <table>
+          <div class="table-wrap" style="border-radius:0 0 8px 8px;overflow-x:auto">
+            <table style="min-width:960px">
               <thead><tr>
-                <th>Prenda</th>
-                <th>Mi costo real (₡)</th>
+                <th style="min-width:220px;text-align:left">Prenda</th>
+                <th style="color:var(--gasto)">Mi costo real (₡)</th>
                 <th>Saprissa me paga (₡)</th>
-                <th style="color:#D4A843">IVA cobrado (₡)<br><span style="font-size:9px;font-weight:400">→ al gobierno</span></th>
-                <th style="color:#4CAF82">Mi ganancia neta (₡)</th>
+                <th style="color:var(--gasto-lt)">IVA cobrado (₡)<br><span style="font-size:9px;font-weight:400">→ al gobierno</span></th>
+                <th style="color:var(--ganancia)">Mi ganancia neta (₡)</th>
                 <th>Precio público (₡)</th>
-                <th style="color:#85B4FF">Ganancia Saprissa (₡)</th>
+                <th style="color:var(--ganancia-sap)">Ganancia Saprissa (₡)</th>
                 <th>Precio público (USD)</th>
               </tr></thead>
               <tbody id="tabla-resumen"></tbody>
@@ -1012,6 +1013,7 @@ console.log('✓ Firebase conectado');
 
 <div class="toast" id="toast"></div>
 
+<script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.4.0/exceljs.min.js"></script>
 <script>
 // ══ LOGO ══
 // Logo is now inline SVG
@@ -1401,29 +1403,52 @@ function deletePrecioRow(i){
   state.config.prendas.splice(i,1);
   saveState(); renderPrecios(); showToast('Eliminada');
 }
+// ── Colores usados en la exportación a Excel ──
+// gasto = rojo fuerte (lo que te cuesta a ti), iva = rojo clarito (va al gobierno),
+// pagan = blanco (lo que te pagan / paga el cliente), ganancia = verde,
+// gananciaSap = azul (ganancia de un tercero, ej. Saprissa), muted = gris suave
+const XLSX_COLORS = {
+  header:      {bg:'FF1F4E79', font:'FFFFFFFF'},
+  nombre:      {bg:'FFFFFFFF', font:'FF111111'},
+  nombreAlt:   {bg:'FFFAFAF8', font:'FF111111'},
+  gasto:       {bg:'FFF09595', font:'FF501313'},
+  iva:         {bg:'FFFCEBEB', font:'FFA32D2D'},
+  pagan:       {bg:'FFFFFFFF', font:'FF111111'},
+  paganAlt:    {bg:'FFFAFAF8', font:'FF111111'},
+  ganancia:    {bg:'FFC0DD97', font:'FF173404'},
+  gananciaSap: {bg:'FFB5D4F4', font:'FF042C53'},
+  gananciaNeg: {bg:'FFF09595', font:'FF501313'},
+  muted:       {bg:'FFFFFFFF', font:'FF666666'},
+};
 function exportSeccion(seccion, formato){
   const t=getTCPrecios();
   const prendas=getPrendas();
-  let rows=[], filename='';
+  let header=[], rows=[], colTypes=[], numFmt=[], filename='';
 
   if(seccion==='A'){
     filename='sixsport-mi-costo-real';
-    rows=[['Prenda','Precio Perú (USD)','Impuesto (USD)','Total USD','Mi costo (₡)']];
+    header=['Prenda','Precio Perú (USD)','Impuesto (USD)','Total USD','Mi costo (₡)'];
+    colTypes=['gasto','iva','gasto','gasto'];
+    numFmt=['"$" #,##0.00','"$" #,##0.00','"$" #,##0.00','"₡" #,##0'];
     prendas.forEach(r=>{
       const costoUSD=r.costoUSD+t.impuesto;
       const costoCRC=costoUSD*t.crc+t.transpCRC;
-      rows.push([r.tipo,r.costoUSD,t.impuesto,costoUSD.toFixed(2),Math.round(costoCRC)]);
+      rows.push([r.tipo, r.costoUSD, t.impuesto, costoUSD, Math.round(costoCRC)]);
     });
   } else if(seccion==='B'){
     filename='sixsport-lista-precios-saprissa';
-    rows=[['Tipo de Prenda','Precio Por Unidad (₡)','IVA 13% (₡)','Importe de la Fábrica (₡)','Precio Venta Web sin IVA (₡)','IVA Final (₡)','Precio de Venta en la WEB con IVA (₡)','Ganancia Saprissa (₡)']];
+    header=['Tipo de Prenda','Precio Por Unidad (₡)','IVA 13% (₡)','Importe de la Fábrica (₡)','Precio Venta Web sin IVA (₡)','IVA Final (₡)','Precio de Venta en la WEB con IVA (₡)','Ganancia Saprissa (₡)'];
+    colTypes=['gasto','iva','gasto','pagan','iva','pagan','ganancia'];
+    numFmt=['"₡" #,##0.00','"₡" #,##0.00','"₡" #,##0.00','"₡" #,##0.00','"₡" #,##0.00','"₡" #,##0.00','"₡" #,##0.00'];
     const sapP = state.config.saprissaPrendas || SAPRISSA_PRENDAS;
     sapP.forEach(r=>{
       rows.push([r.tipo, r.precioFabrica, r.ivaFab, r.importeFab, r.precioWebSinIva, r.ivaFinal, r.precioWeb, r.ganancia]);
     });
   } else if(seccion==='C'){
     filename='sixsport-lista-precios-saprissa';
-    rows=[['Prenda','Lo que Saprissa paga (₡)','Precio venta sin IVA (₡)','IVA 13% (₡)','Precio final al público (₡)','Precio USD','Ganancia Saprissa (₡)']];
+    header=['Prenda','Lo que Saprissa paga (₡)','Precio venta sin IVA (₡)','IVA 13% (₡)','Precio final al público (₡)','Precio USD','Ganancia Saprissa (₡)'];
+    colTypes=['pagan','pagan','iva','pagan','muted','gananciaSap'];
+    numFmt=['"₡" #,##0','"₡" #,##0','"₡" #,##0','"₡" #,##0','"$" #,##0.00','"₡" #,##0'];
     prendas.forEach(r=>{
       const miCosto=(r.costoUSD+t.impuesto)*t.crc+t.transpCRC;
       const sinIva=r.precioVentaCRC>0?r.precioVentaCRC:Math.ceil(miCosto*1.2/100)*100;
@@ -1432,28 +1457,30 @@ function exportSeccion(seccion, formato){
       const ivaPublico=Math.round(pubSinIva*t.iva/100);
       const precioFinal=pubSinIva+ivaPublico;
       const ganSap=pubSinIva-sinIva;
-      rows.push([r.tipo,Math.round(saprissaPaga),pubSinIva,ivaPublico,precioFinal,(precioFinal/t.crc).toFixed(2),Math.round(ganSap)]);
+      rows.push([r.tipo, Math.round(saprissaPaga), pubSinIva, ivaPublico, precioFinal, +(precioFinal/t.crc).toFixed(2), Math.round(ganSap)]);
     });
   } else if(seccion==='D'){
     filename='sixsport-resumen-rentabilidad';
-    rows=[['Prenda','Mi costo real (₡)','Saprissa me paga (₡)','Mi ganancia (₡)','Precio público (₡)','Ganancia Saprissa (₡)','Precio USD']];
+    header=['Prenda','Mi costo real (₡)','Saprissa me paga (₡)','IVA cobrado (₡)','Mi ganancia neta (₡)','Precio público (₡)','Ganancia Saprissa (₡)','Precio USD'];
+    colTypes=['gasto','pagan','iva','ganancia','pagan','gananciaSap','muted'];
+    numFmt=['"₡" #,##0','"₡" #,##0','"₡" #,##0','"₡" #,##0','"₡" #,##0','"₡" #,##0','"$" #,##0.00'];
     prendas.forEach(r=>{
       const miCosto=(r.costoUSD+t.impuesto)*t.crc+t.transpCRC;
       const sinIva=r.precioVentaCRC>0?r.precioVentaCRC:Math.ceil(miCosto*1.2/100)*100;
       const saprissaMePaga=sinIva*(1+t.iva/100);
+      const iva=sinIva*t.iva/100;
       const miGan=sinIva-miCosto;
       const precioPublico=r.precioPublicoCRC>0?r.precioPublicoCRC:Math.ceil(saprissaMePaga*1.2/100)*100;
-      const ivaPublico=Math.round(precioPublico*t.iva/100);
+      const ivaPublico=precioPublico*t.iva/100;
       const precioFinal=precioPublico+ivaPublico;
       const ganSap=precioPublico-sinIva;
-      rows.push([r.tipo,Math.round(miCosto),Math.round(saprissaMePaga),Math.round(miGan),precioFinal,Math.round(ganSap),(precioFinal/t.crc).toFixed(2)]);
+      rows.push([r.tipo, Math.round(miCosto), Math.round(saprissaMePaga), Math.round(iva), Math.round(miGan), Math.round(precioFinal), Math.round(ganSap), +(precioFinal/t.crc).toFixed(2)]);
     });
   }
 
   if(formato==='csv'){
-    // Formatear números con coma decimal para Excel en español
     const fmtNum = n => typeof n === 'number' ? n.toLocaleString('es',{minimumFractionDigits:0,maximumFractionDigits:2}) : n;
-    const csv=rows.map((r,ri)=>r.map((c,ci)=>{
+    const csv=[header, ...rows].map((r,ri)=>r.map((c,ci)=>{
       const val = ri>0 && ci>0 ? fmtNum(c) : c;
       return `"${val}"`;
     }).join(',')).join('\n');
@@ -1462,55 +1489,61 @@ function exportSeccion(seccion, formato){
     a.download=filename+'.csv'; a.click();
     showToast('CSV exportado ✓');
   } else if(formato==='xlsx'){
-    const fmtNum = n => typeof n === 'number' ? n.toLocaleString('es',{minimumFractionDigits:2,maximumFractionDigits:2}) : n;
-    // Crear HTML table para Excel con formato exacto del documento Saprissa
-    let html='<html><head><meta charset="UTF-8"><style>';
-    html+='body{font-family:Arial,sans-serif;font-size:11px}';
-    html+='table{border-collapse:collapse;width:100%}';
-    html+='th{background:#1F4E79;color:#FFFFFF;font-weight:bold;padding:6px 8px;border:1px solid #999;text-align:center}';
-    html+='.col-prenda{background:#D9E1F2;color:#000;font-weight:bold;text-align:left}';
-    html+='.col-precio{background:#E2EFDA;color:#000;text-align:right}';
-    html+='.col-iva{background:#FFFFFF;color:#000;text-align:right}';
-    html+='.col-importe{background:#E2EFDA;color:#000;text-align:right}';
-    html+='.col-web{background:#FFF2CC;color:#000;text-align:right}';
-    html+='.col-ivafinal{background:#FFFFFF;color:#000;text-align:right}';
-    html+='.col-precio-web{background:#C00000;color:#FFFFFF;font-weight:bold;text-align:right}';
-    html+='.col-ganancia{background:#FFFFFF;color:#000;text-align:right}';
-    html+='td{padding:5px 8px;border:1px solid #ccc}';
-    html+='</style></head><body><table>';
-    // Header
-    html+='<tr>';
-    html+='<th class="col-prenda">Tipo de Prenda</th>';
-    html+='<th class="col-precio">Precio Por Unidad</th>';
-    html+='<th class="col-iva">IVA</th>';
-    html+='<th class="col-importe">Importe de la Fábrica</th>';
-    html+='<th class="col-web">Precio venta página</th>';
-    html+='<th class="col-ivafinal">IVA FINAL</th>';
-    html+='<th class="col-precio-web">Precio de Venta en la WEB IVAI</th>';
-    html+='<th class="col-ganancia">GANANCIA SAPRISSA</th>';
-    html+='</tr>';
-    // Rows
-    const sapP2 = state.config.saprissaPrendas || SAPRISSA_PRENDAS;
-    sapP2.forEach(r=>{
-      html+='<tr>';
-      html+=`<td class="col-prenda">${r.tipo}</td>`;
-      html+=`<td class="col-precio">₡ &nbsp;${fmtNum(r.precioFabrica)}</td>`;
-      html+=`<td class="col-iva">₡ &nbsp;${fmtNum(r.ivaFab)}</td>`;
-      html+=`<td class="col-importe">₡ &nbsp;${fmtNum(r.importeFab)}</td>`;
-      html+=`<td class="col-web">₡ &nbsp;${fmtNum(r.precioWebSinIva)}</td>`;
-      html+=`<td class="col-ivafinal">₡ &nbsp;${fmtNum(r.ivaFinal)}</td>`;
-      html+=`<td class="col-precio-web">₡ &nbsp;${fmtNum(r.precioWeb)}</td>`;
-      html+=`<td class="col-ganancia">₡ &nbsp;${fmtNum(r.ganancia)}</td>`;
-      html+='</tr>';
-    });
-    html+='</table></body></html>';
-    const blob=new Blob([html],{type:'application/vnd.ms-excel;charset=utf-8'});
-    const url=URL.createObjectURL(blob);
-    const a=document.createElement('a');
-    a.href=url; a.download=filename+'.xls'; a.click();
-    URL.revokeObjectURL(url);
-    showToast('Excel exportado ✓');
+    exportXLSX(filename, header, rows, colTypes, numFmt);
   }
+}
+async function exportXLSX(filename, header, rows, colTypes, numFmt){
+  if(typeof ExcelJS==='undefined'){ showToast('No se pudo cargar el motor de Excel, revisa tu conexión'); return; }
+  const wb=new ExcelJS.Workbook();
+  const ws=wb.addWorksheet('SIX·SPORT');
+
+  const headerRow=ws.addRow(header);
+  headerRow.eachCell(cell=>{
+    cell.fill={type:'pattern',pattern:'solid',fgColor:{argb:XLSX_COLORS.header.bg}};
+    cell.font={color:{argb:XLSX_COLORS.header.font},bold:true};
+    cell.alignment={vertical:'middle',horizontal:'center',wrapText:true};
+    cell.border={top:{style:'thin',color:{argb:'FF999999'}},bottom:{style:'thin',color:{argb:'FF999999'}},left:{style:'thin',color:{argb:'FF999999'}},right:{style:'thin',color:{argb:'FF999999'}}};
+  });
+
+  rows.forEach((r,ri)=>{
+    const row=ws.addRow(r);
+    const zebra = ri%2===1;
+    row.eachCell((cell,colNumber)=>{
+      const isNombre = colNumber===1;
+      let style;
+      if(isNombre){
+        style = zebra?XLSX_COLORS.nombreAlt:XLSX_COLORS.nombre;
+        cell.alignment={vertical:'middle',horizontal:'left',wrapText:true};
+        cell.font={color:{argb:style.font},bold:true};
+      } else {
+        const type=colTypes[colNumber-2];
+        if(type==='gananciaSap'){
+          style = (typeof cell.value==='number' && cell.value<0) ? XLSX_COLORS.gananciaNeg : XLSX_COLORS.gananciaSap;
+        } else if(type==='pagan'){
+          style = zebra?XLSX_COLORS.paganAlt:XLSX_COLORS.pagan;
+        } else {
+          style = XLSX_COLORS[type] || XLSX_COLORS.muted;
+        }
+        cell.alignment={vertical:'middle',horizontal:'right'};
+        cell.font={color:{argb:style.font},bold:(type==='gasto'||type==='ganancia'||type==='gananciaSap')};
+        const fmt=numFmt[colNumber-2];
+        if(fmt) cell.numFmt=fmt;
+      }
+      cell.fill={type:'pattern',pattern:'solid',fgColor:{argb:style.bg}};
+      cell.border={top:{style:'thin',color:{argb:'FFCCCCCC'}},bottom:{style:'thin',color:{argb:'FFCCCCCC'}},left:{style:'thin',color:{argb:'FFCCCCCC'}},right:{style:'thin',color:{argb:'FFCCCCCC'}}};
+    });
+  });
+
+  ws.columns.forEach((col,i)=>{ col.width = i===0 ? 42 : 20; });
+  headerRow.height=30;
+
+  const buffer=await wb.xlsx.writeBuffer();
+  const blob=new Blob([buffer],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url; a.download=filename+'.xlsx'; a.click();
+  URL.revokeObjectURL(url);
+  showToast('Excel exportado ✓');
 }
 function exportarPrecios(){exportSeccion('D','csv');}
 
@@ -1541,11 +1574,11 @@ function renderPrecios(){
     const costoBase=(r.costoUSD+impUSD)*t.crc;
     const miCosto=costoBase+t.transpCRC;
     return`<tr>
-      <td><input class="form-input" value="${r.tipo}" style="width:100%;background:transparent;border:none;border-bottom:1px solid var(--steel);border-radius:0;padding:4px 0;font-weight:600;color:var(--white)" onchange="updatePrecioField(${i},'tipo',this.value)"></td>
-      <td><input class="form-input" type="number" step="0.01" value="${r.costoUSD}" style="width:85px;color:var(--gold-lt);font-weight:700;border-color:var(--gold-dk)" onchange="updatePrecioField(${i},'costoUSD',+this.value)"></td>
-      <td style="color:var(--muted)">$${impUSD.toFixed(2)}<br><span style="font-size:10px">≈ ₡${fmt(impUSD*t.crc)}</span></td>
+      <td><input class="form-input" value="${r.tipo}" title="${r.tipo}" style="width:100%;min-width:220px;background:transparent;border:none;border-bottom:1px solid var(--steel);border-radius:0;padding:4px 0;font-weight:600;color:var(--white)" onchange="updatePrecioField(${i},'tipo',this.value)"></td>
+      <td><input class="form-input" type="number" step="0.01" value="${r.costoUSD}" style="width:85px;color:var(--gasto);font-weight:700;border-color:var(--gold-dk)" onchange="updatePrecioField(${i},'costoUSD',+this.value)"></td>
+      <td style="color:var(--gasto-lt)">$${impUSD.toFixed(2)}<br><span style="font-size:10px">≈ ₡${fmt(impUSD*t.crc)}</span></td>
       <td style="color:var(--muted)">₡${fmt(t.transpCRC)}</td>
-      <td><strong style="color:var(--gold-lt);font-size:14px">₡${fmt(miCosto)}</strong><br><span style="font-size:10px;color:var(--muted)">$${((r.costoUSD+impUSD)+(t.transpCRC/t.crc)).toFixed(2)}</span></td>
+      <td><strong style="color:var(--gasto);font-size:14px">₡${fmt(miCosto)}</strong><br><span style="font-size:10px;color:var(--muted)">$${((r.costoUSD+impUSD)+(t.transpCRC/t.crc)).toFixed(2)}</span></td>
       <td><button class="btn btn-danger btn-sm" onclick="deletePrecioRow(${i})">✕</button></td>
     </tr>`;
   }).join('');
@@ -1563,19 +1596,19 @@ function renderPrecios(){
     totalIva+=iva; totalMiGan+=ganancia;
     return`<tr>
       <td style="font-weight:600">
-        <input class="form-input" value="${r.tipo}" style="width:100%;background:transparent;border:none;border-bottom:1px solid var(--steel);border-radius:0;padding:4px 0;font-weight:600;color:var(--white)" onchange="updateSaprissaPrenda(${i},'tipo',this.value)">
+        <input class="form-input" value="${r.tipo}" title="${r.tipo}" style="width:100%;min-width:240px;background:transparent;border:none;border-bottom:1px solid var(--steel);border-radius:0;padding:4px 0;font-weight:600;color:var(--white)" onchange="updateSaprissaPrenda(${i},'tipo',this.value)">
       </td>
       <td>
-        <input class="form-input" type="number" step="0.01" value="${r.precioFabrica}" style="width:90px;color:var(--gold-lt);font-weight:700;border-color:var(--gold-dk)" onchange="updateSaprissaPrenda(${i},'precioFabrica',+this.value)">
+        <input class="form-input" type="number" step="0.01" value="${r.precioFabrica}" style="width:90px;color:var(--gasto);font-weight:700;border-color:var(--gold-dk)" onchange="updateSaprissaPrenda(${i},'precioFabrica',+this.value)">
       </td>
-      <td style="color:var(--muted)">₡${fmt(iva)}</td>
-      <td><strong>₡${fmt(importeFab)}</strong></td>
+      <td style="color:var(--gasto-lt)">₡${fmt(iva)}</td>
+      <td><strong style="color:var(--gasto)">₡${fmt(importeFab)}</strong></td>
       <td style="color:var(--muted)">₡${fmt(precioWebSinIva)}</td>
-      <td style="color:var(--muted)">₡${fmt(ivaFinal)}</td>
+      <td style="color:var(--gasto-lt)">₡${fmt(ivaFinal)}</td>
       <td>
         <input class="form-input" type="number" step="0.01" value="${r.precioWeb}" style="width:90px;color:var(--gold-lt);font-weight:700;border-color:var(--gold-dk)" onchange="updateSaprissaPrenda(${i},'precioWeb',+this.value)">
       </td>
-      <td style="color:#4CAF82;font-weight:700">₡${fmt(ganancia)}</td>
+      <td style="color:var(--ganancia);font-weight:700">₡${fmt(ganancia)}</td>
     </tr>`;
   }).join('');
 
@@ -1590,15 +1623,15 @@ function renderPrecios(){
     const precioFinal=precioSinIva+ivaPublico;
     const ganSaprissa=precioSinIva-saprissaMePaga; // ganancia antes de IVA (el IVA lo paga al gobierno)
     totalGanSap+=ganSaprissa;
-    const col=ganSaprissa>0?'#85B4FF':'var(--danger)';
+    const col=ganSaprissa>0?'var(--ganancia-sap)':'var(--danger)';
     return`<tr>
-      <td style="font-weight:600">${r.tipo}</td>
+      <td style="font-weight:600;min-width:220px;white-space:normal;line-height:1.4" title="${r.tipo}">${r.tipo}</td>
       <td style="color:var(--muted)">₡${fmt(saprissaMePaga)}</td>
       <td>
         <input class="form-input" type="number" value="${r.precioPublicoCRC||0}" style="width:100px;color:var(--gold-lt);font-weight:700;border-color:var(--gold-dk)" onchange="updatePrecioField(${i},'precioPublicoCRC',+this.value)">
         <div style="font-size:10px;color:var(--muted)">${r.precioPublicoCRC>0?'Sin IVA':'Auto'} → +13%</div>
       </td>
-      <td style="color:var(--muted)">+ ₡${fmt(ivaPublico)}</td>
+      <td style="color:var(--gasto-lt)">+ ₡${fmt(ivaPublico)}</td>
       <td>
         <strong style="font-size:15px;color:var(--gold-lt)">₡${fmt(precioFinal)}</strong><br>
         <span style="font-size:11px;color:var(--muted)">$${(precioFinal/t.crc).toFixed(2)} USD</span>
@@ -1622,13 +1655,13 @@ function renderPrecios(){
     totalDCosto+=miCosto; totalDPaga+=saprissaMePaga;
     totalDIva+=iva; totalDGan+=miGan; totalDGanSap+=ganSap;
     return`<tr>
-      <td style="font-weight:600">${r.tipo}</td>
-      <td style="color:var(--muted)">₡${fmt(miCosto)}</td>
+      <td style="font-weight:600;min-width:220px;white-space:normal;line-height:1.4" title="${r.tipo}">${r.tipo}</td>
+      <td style="color:var(--gasto);font-weight:600">₡${fmt(miCosto)}</td>
       <td>₡${fmt(saprissaMePaga)}</td>
-      <td style="color:#D4A843;font-weight:600">₡${fmt(iva)}</td>
-      <td style="color:#4CAF82;font-weight:700">₡${fmt(miGan)}</td>
+      <td style="color:var(--gasto-lt);font-weight:600">₡${fmt(iva)}</td>
+      <td style="color:var(--ganancia);font-weight:700">₡${fmt(miGan)}</td>
       <td><strong>₡${fmt(precioFinal)}</strong></td>
-      <td style="color:#85B4FF;font-weight:700">₡${fmt(ganSap)}</td>
+      <td style="color:${ganSap>0?'var(--ganancia-sap)':'var(--danger)'};font-weight:700">₡${fmt(ganSap)}</td>
       <td style="color:var(--muted)">$${(precioFinal/t.crc).toFixed(2)}</td>
     </tr>`;
   }).join('');
@@ -1637,12 +1670,12 @@ function renderPrecios(){
   if(totalesEl){
     totalesEl.innerHTML=`<tr style="border-top:2px solid var(--gold);background:rgba(201,162,78,.08)">
       <td style="font-weight:700;color:var(--gold-lt)">TOTAL (por unidad)</td>
-      <td style="color:var(--muted);font-weight:600">₡${fmt(totalDCosto)}</td>
+      <td style="color:var(--gasto);font-weight:700">₡${fmt(totalDCosto)}</td>
       <td style="font-weight:600">₡${fmt(totalDPaga)}</td>
-      <td style="color:#D4A843;font-weight:700">₡${fmt(totalDIva)}<br><span style="font-size:10px;font-weight:400;color:var(--muted)">IVA a declarar</span></td>
-      <td style="color:#4CAF82;font-weight:700">₡${fmt(totalDGan)}</td>
+      <td style="color:var(--gasto-lt);font-weight:700">₡${fmt(totalDIva)}<br><span style="font-size:10px;font-weight:400;color:var(--muted)">→ al gobierno</span></td>
+      <td style="color:var(--ganancia);font-weight:700">₡${fmt(totalDGan)}</td>
       <td>—</td>
-      <td style="color:#85B4FF;font-weight:700">₡${fmt(totalDGanSap)}</td>
+      <td style="color:${totalDGanSap>0?'var(--ganancia-sap)':'var(--danger)'};font-weight:700">₡${fmt(totalDGanSap)}</td>
       <td>—</td>
     </tr>`;
   }
