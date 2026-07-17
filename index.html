@@ -1301,26 +1301,26 @@ function closeModal(id){document.getElementById(id).classList.remove('open');}
 function getPrendas(){
   // PRECIOS VERIFICADOS DEL EXCEL DE SAPRISSA:
   // precioVentaCRC = precio SIN IVA que yo le cobro a Saprissa
-  // precioPublicoCRC = precio SIN IVA que Saprissa vende al público
+  // precioPublicoCRC = precio SIN IVA que Saprissa vende al público (= precio con IVA ÷ 1.13, IVA real 13%)
   // Uniformes: yo cobro ₡15,900 sin IVA → Saprissa me paga ₡17,967 con IVA
   // Saprissa vende: ₡22,920 sin IVA → precio público ₡25,900 con IVA
   // Entreno: yo cobro ₡8,550 sin IVA → Saprissa vende ₡13,186 sin IVA → ₡14,900 con IVA
   // Polo: yo cobro ₡16,500 sin IVA → Saprissa vende ₡21,150 sin IVA → ₡23,900 con IVA
   return state.config.prendas||[
-    {tipo:'Academias Morado Niño (Uniforme)',    costoUSD:19.00, precioVentaCRC:15900, precioPublicoCRC:22533, esJuego:true,  tallas:'2,4,6,8,10,12,14,16',  imagen:'https://i.imgur.com/MQywPjA.jpg'},
-    {tipo:'Academias Morado (Uniforme)',          costoUSD:21.02, precioVentaCRC:15900, precioPublicoCRC:22533, esJuego:true,  tallas:'XS,S,M,L,XL,2XL',     imagen:'https://i.imgur.com/MQywPjA.jpg'},
-    {tipo:'Academias Morado XXL (Uniforme)',      costoUSD:21.92, precioVentaCRC:15900, precioPublicoCRC:22533, esJuego:true,  tallas:'2XL,3XL',              imagen:'https://i.imgur.com/MQywPjA.jpg'},
-    {tipo:'Academias Portero Niño (Uniforme)',    costoUSD:19.00, precioVentaCRC:15900, precioPublicoCRC:22533, esJuego:true,  tallas:'2,4,6,8,10,12,14,16',  imagen:'https://i.imgur.com/jvDltuV.jpg'},
-    {tipo:'Academias Portero (Uniforme)',         costoUSD:21.02, precioVentaCRC:15900, precioPublicoCRC:22533, esJuego:true,  tallas:'XS,S,M,L,XL,2XL',     imagen:'https://i.imgur.com/jvDltuV.jpg'},
-    {tipo:'Academias Entreno Niño (Camiseta)',    costoUSD:8.41,  precioVentaCRC:8550,  precioPublicoCRC:12963, esJuego:false, tallas:'2,4,6,8,10,12,14,16',  imagen:'https://i.imgur.com/e59Kiss.jpg'},
-    {tipo:'Academias Entreno (Camiseta)',         costoUSD:8.71,  precioVentaCRC:8550,  precioPublicoCRC:12963, esJuego:false, tallas:'XS,S,M,L,XL,2XL',     imagen:'https://i.imgur.com/e59Kiss.jpg'},
-    {tipo:'Procesos Morado Niño (Uniforme)',      costoUSD:18.12, precioVentaCRC:15900, precioPublicoCRC:22533, esJuego:true,  tallas:'2,4,6,8,10,12,14,16',  imagen:'https://i.imgur.com/MQywPjA.jpg'},
-    {tipo:'Procesos Morado (Uniforme)',           costoUSD:20.12, precioVentaCRC:15900, precioPublicoCRC:22533, esJuego:true,  tallas:'XS,S,M,L,XL,2XL',     imagen:'https://i.imgur.com/MQywPjA.jpg'},
-    {tipo:'Procesos Blanco Niño (Uniforme)',      costoUSD:18.12, precioVentaCRC:15900, precioPublicoCRC:22533, esJuego:true,  tallas:'2,4,6,8,10,12,14,16',  imagen:'https://i.imgur.com/ORndWkX.jpg'},
-    {tipo:'Procesos Blanco (Uniforme)',           costoUSD:20.12, precioVentaCRC:15900, precioPublicoCRC:22533, esJuego:true,  tallas:'XS,S,M,L,XL,2XL',     imagen:'https://i.imgur.com/ORndWkX.jpg'},
-    {tipo:'Procesos Portero Niño (Uniforme)',     costoUSD:18.12, precioVentaCRC:15900, precioPublicoCRC:22533, esJuego:true,  tallas:'2,4,6,8,10,12,14,16',  imagen:'https://i.imgur.com/jvDltuV.jpg'},
-    {tipo:'Procesos Portero (Uniforme)',          costoUSD:20.12, precioVentaCRC:15900, precioPublicoCRC:22533, esJuego:true,  tallas:'XS,S,M,L,XL,2XL',     imagen:'https://i.imgur.com/jvDltuV.jpg'},
-    {tipo:'Polo Blanca Cuello Verde — Saprissa', costoUSD:20.12, precioVentaCRC:16500, precioPublicoCRC:20793, esJuego:false, tallas:'8,10,12,14,16,S,M,L,XL',imagen:'https://i.imgur.com/GTZycmb.jpg'},
+    {tipo:'Academias Morado Niño (Uniforme)',    costoUSD:19.00, precioVentaCRC:15900, precioPublicoCRC:22920, esJuego:true,  tallas:'2,4,6,8,10,12,14,16',  imagen:'https://i.imgur.com/MQywPjA.jpg'},
+    {tipo:'Academias Morado (Uniforme)',          costoUSD:21.02, precioVentaCRC:15900, precioPublicoCRC:22920, esJuego:true,  tallas:'XS,S,M,L,XL,2XL',     imagen:'https://i.imgur.com/MQywPjA.jpg'},
+    {tipo:'Academias Morado XXL (Uniforme)',      costoUSD:21.92, precioVentaCRC:15900, precioPublicoCRC:22920, esJuego:true,  tallas:'2XL,3XL',              imagen:'https://i.imgur.com/MQywPjA.jpg'},
+    {tipo:'Academias Portero Niño (Uniforme)',    costoUSD:19.00, precioVentaCRC:15900, precioPublicoCRC:22920, esJuego:true,  tallas:'2,4,6,8,10,12,14,16',  imagen:'https://i.imgur.com/jvDltuV.jpg'},
+    {tipo:'Academias Portero (Uniforme)',         costoUSD:21.02, precioVentaCRC:15900, precioPublicoCRC:22920, esJuego:true,  tallas:'XS,S,M,L,XL,2XL',     imagen:'https://i.imgur.com/jvDltuV.jpg'},
+    {tipo:'Academias Entreno Niño (Camiseta)',    costoUSD:8.41,  precioVentaCRC:8550,  precioPublicoCRC:13186, esJuego:false, tallas:'2,4,6,8,10,12,14,16',  imagen:'https://i.imgur.com/e59Kiss.jpg'},
+    {tipo:'Academias Entreno (Camiseta)',         costoUSD:8.71,  precioVentaCRC:8550,  precioPublicoCRC:13186, esJuego:false, tallas:'XS,S,M,L,XL,2XL',     imagen:'https://i.imgur.com/e59Kiss.jpg'},
+    {tipo:'Procesos Morado Niño (Uniforme)',      costoUSD:18.12, precioVentaCRC:15900, precioPublicoCRC:22920, esJuego:true,  tallas:'2,4,6,8,10,12,14,16',  imagen:'https://i.imgur.com/MQywPjA.jpg'},
+    {tipo:'Procesos Morado (Uniforme)',           costoUSD:20.12, precioVentaCRC:15900, precioPublicoCRC:22920, esJuego:true,  tallas:'XS,S,M,L,XL,2XL',     imagen:'https://i.imgur.com/MQywPjA.jpg'},
+    {tipo:'Procesos Blanco Niño (Uniforme)',      costoUSD:18.12, precioVentaCRC:15900, precioPublicoCRC:22920, esJuego:true,  tallas:'2,4,6,8,10,12,14,16',  imagen:'https://i.imgur.com/ORndWkX.jpg'},
+    {tipo:'Procesos Blanco (Uniforme)',           costoUSD:20.12, precioVentaCRC:15900, precioPublicoCRC:22920, esJuego:true,  tallas:'XS,S,M,L,XL,2XL',     imagen:'https://i.imgur.com/ORndWkX.jpg'},
+    {tipo:'Procesos Portero Niño (Uniforme)',     costoUSD:18.12, precioVentaCRC:15900, precioPublicoCRC:22920, esJuego:true,  tallas:'2,4,6,8,10,12,14,16',  imagen:'https://i.imgur.com/jvDltuV.jpg'},
+    {tipo:'Procesos Portero (Uniforme)',          costoUSD:20.12, precioVentaCRC:15900, precioPublicoCRC:22920, esJuego:true,  tallas:'XS,S,M,L,XL,2XL',     imagen:'https://i.imgur.com/jvDltuV.jpg'},
+    {tipo:'Polo Blanca Cuello Verde — Saprissa', costoUSD:20.12, precioVentaCRC:16500, precioPublicoCRC:21150, esJuego:false, tallas:'8,10,12,14,16,S,M,L,XL',imagen:'https://i.imgur.com/GTZycmb.jpg'},
   ];
 }
 function calcP(r){
@@ -1336,10 +1336,10 @@ function calcP(r){
 // Prendas oficiales de Academia Saprissa 2026 — valores exactos del documento oficial
 // Valores exactos del Excel — con decimales completos
 const SAPRISSA_PRENDAS = [
-  {tipo:'Uniforme de fútbol tela jaquard (Camiseta-pantaloneta-medias)', precioFabrica:15900.00, ivaFab:2067.00,  importeFab:17967.00, precioWebSinIva:22533.00, ivaFinal:3367.00, precioWeb:25900.00, ganancia:7933.00},
-  {tipo:'Camiseta Deportiva Polo en Tela jaquard',                        precioFabrica:16500.00, ivaFab:2145.00,  importeFab:18645.00, precioWebSinIva:20793.00, ivaFinal:3107.00, precioWeb:23900.00, ganancia:5255.00},
-  {tipo:'Camiseta De Academias tela jaquard (PADRES)',                    precioFabrica:13500.00, ivaFab:1755.00,  importeFab:15255.00, precioWebSinIva:19053.00, ivaFinal:2847.00, precioWeb:21900.00, ganancia:6645.00},
-  {tipo:'Camiseta Entreno tela básica',                                   precioFabrica:8550.00,  ivaFab:1111.50, importeFab:9661.50,  precioWebSinIva:12963.00, ivaFinal:1937.00, precioWeb:14900.00, ganancia:5238.50},
+  {tipo:'Uniforme de fútbol tela jaquard (Camiseta-pantaloneta-medias)', precioFabrica:15900.00, ivaFab:2067.00,  importeFab:17967.00, precioWebSinIva:22920.00, ivaFinal:2980.00, precioWeb:25900.00, ganancia:7933.00},
+  {tipo:'Camiseta Deportiva Polo en Tela jaquard',                        precioFabrica:16500.00, ivaFab:2145.00,  importeFab:18645.00, precioWebSinIva:21150.00, ivaFinal:2750.00, precioWeb:23900.00, ganancia:5255.00},
+  {tipo:'Camiseta De Academias tela jaquard (PADRES)',                    precioFabrica:13500.00, ivaFab:1755.00,  importeFab:15255.00, precioWebSinIva:19381.00, ivaFinal:2519.00, precioWeb:21900.00, ganancia:6645.00},
+  {tipo:'Camiseta Entreno tela básica',                                   precioFabrica:8550.00,  ivaFab:1111.50, importeFab:9661.50,  precioWebSinIva:13186.00, ivaFinal:1714.00, precioWeb:14900.00, ganancia:5238.50},
 ];
 function updateSaprissaPrenda(i,field,val){
   if(!state.config.saprissaPrendas) state.config.saprissaPrendas=JSON.parse(JSON.stringify(SAPRISSA_PRENDAS));
@@ -1352,8 +1352,9 @@ function updateSaprissaPrenda(i,field,val){
     r.ganancia=r.precioWeb-r.importeFab;
   }
   if(field==='precioWeb'){
-    r.ivaFinal=r.precioWeb*0.13;
-    r.precioWebSinIva=r.precioWeb-r.ivaFinal;
+    // IVA real: se extrae dividiendo entre 1.13 (no restando 13% directo, eso da un IVA implícito de ~14.9%)
+    r.precioWebSinIva=r.precioWeb/1.13;
+    r.ivaFinal=r.precioWeb-r.precioWebSinIva;
     r.ganancia=r.precioWeb-r.importeFab;
   }
   saveState(); renderPrecios();
